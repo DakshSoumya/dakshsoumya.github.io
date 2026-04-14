@@ -289,7 +289,7 @@ select.field-input{cursor:pointer}
     <div class="dcard-title"><span></span>Class Tracker</div>
     <table class="tracker-table">
       <thead><tr>
-        <th>Subject</th><th>Topic</th><th>Teacher</th><th>Attended</th>
+        <th>Subject</th><th>Topic</th>
       </tr></thead>
       <tbody id="class-rows"></tbody>
     </table>
@@ -789,16 +789,11 @@ function changeDay(n){ diaryDate=new Date(diaryDate.getTime()+n*86400000); rende
 function goToday(){ diaryDate=new Date(); diaryDate.setHours(0,0,0,0); renderDiary(); }
 
 function renderClassRows(){
-  const rows=getD('class-rows',[{sub:'',topic:'',teacher:'',live:false,recorded:false},{sub:'',topic:'',teacher:'',live:false,recorded:false},{sub:'',topic:'',teacher:'',live:false,recorded:false},{sub:'',topic:'',teacher:'',live:false,recorded:false}]);
+  const rows=getD('class-rows',[{sub:'',topic:''},{sub:'',topic:''},{sub:'',topic:''},{sub:'',topic:''}]);
   document.getElementById('class-rows').innerHTML=rows.map((r,i)=>`
     <tr>
       <td><input class="tracker-input" type="text" value="${r.sub||''}" placeholder="e.g. Physics" onchange="updateClassRow(${i},'sub',this.value)"></td>
       <td><input class="tracker-input" type="text" value="${r.topic||''}" placeholder="e.g. Kinematics" onchange="updateClassRow(${i},'topic',this.value)"></td>
-      <td><input class="tracker-input" type="text" value="${r.teacher||''}" placeholder="Teacher name" onchange="updateClassRow(${i},'teacher',this.value)"></td>
-      <td><div class="att-checks">
-        <label class="att-lbl"><input type="checkbox" ${r.live?'checked':''} onchange="updateClassRow(${i},'live',this.checked)" style="accent-color:var(--accent)"> Live</label>
-        <label class="att-lbl"><input type="checkbox" ${r.recorded?'checked':''} onchange="updateClassRow(${i},'recorded',this.checked)" style="accent-color:var(--accent)"> Recorded</label>
-      </div></td>
     </tr>
   `).join('');
 }
