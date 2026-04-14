@@ -154,6 +154,17 @@ textarea.field-input{resize:vertical;min-height:48px}
 
 .save-ind{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px;font-family:var(--mono);color:var(--text3);opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
 .save-ind.show{opacity:1}
+
+/* CHAPTER GROUPS */
+.grp-wrap{margin-bottom:18px}
+.grp-header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;cursor:pointer;user-select:none;transition:background .15s}
+.grp-header:hover{background:var(--surface3)}
+.grp-label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);flex:1}
+.grp-pill{font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:99px;background:rgba(200,245,66,.1);color:var(--accent)}
+.grp-chev{font-size:10px;color:var(--text3);transition:transform .2s}
+.grp-chev.open{transform:rotate(90deg)}
+.grp-body{display:none;padding-top:8px}
+.grp-body.open{display:block}
 </style>
 </head>
 <body>
@@ -409,6 +420,41 @@ const CHAPTERS = {
   ]
 };
 
+const GROUPS = {
+  phy11:[
+    {name:"Mechanics",chapters:["Physical World & Measurement","Kinematics","Laws of Motion","Work, Energy & Power","Rotational Motion","Gravitation","Properties of Matter"]},
+    {name:"Thermodynamics & KTG",chapters:["Thermodynamics","Kinetic Theory of Gases"]},
+    {name:"Oscillations & Waves",chapters:["Oscillations & Waves"]},
+  ],
+  chem11:[
+    {name:"Physical Chemistry",chapters:["Basic Concepts of Chemistry","Atomic Structure","States of Matter","Thermodynamics","Equilibrium","Redox Reactions"]},
+    {name:"Inorganic Chemistry",chapters:["Classification of Elements","Chemical Bonding","Hydrogen & s-Block"]},
+    {name:"Organic Chemistry",chapters:["Organic Chemistry Basics","Hydrocarbons"]},
+  ],
+  math11:[
+    {name:"Algebra",chapters:["Sets, Relations & Functions","Complex Numbers","Quadratic Equations","Permutations & Combinations","Binomial Theorem","Sequences & Series","Mathematical Reasoning","Statistics & Probability"]},
+    {name:"Trigonometry",chapters:["Trigonometry"]},
+    {name:"Coordinate Geometry",chapters:["Straight Lines","Conic Sections"]},
+    {name:"Calculus",chapters:["Limits & Derivatives"]},
+  ],
+  phy12:[
+    {name:"Electrostatics & Current Electricity",chapters:["Electric Charges & Fields","Electrostatic Potential & Capacitance","Current Electricity"]},
+    {name:"Magnetism & EMI",chapters:["Moving Charges & Magnetism","Magnetism & Matter","Electromagnetic Induction","Alternating Current","Electromagnetic Waves"]},
+    {name:"Optics",chapters:["Ray Optics","Wave Optics"]},
+    {name:"Modern Physics",chapters:["Dual Nature of Radiation","Atoms & Nuclei","Semiconductor Electronics"]},
+  ],
+  chem12:[
+    {name:"Physical Chemistry",chapters:["Solid State","Solutions","Electrochemistry","Chemical Kinetics","Surface Chemistry"]},
+    {name:"Inorganic Chemistry",chapters:["p-Block Elements","d & f Block Elements","Coordination Compounds"]},
+    {name:"Organic Chemistry",chapters:["Haloalkanes & Haloarenes","Alcohols, Phenols & Ethers","Aldehydes, Ketones & Acids","Amines","Biomolecules & Polymers"]},
+  ],
+  math12:[
+    {name:"Algebra",chapters:["Relations & Functions","Inverse Trigonometric Functions","Matrices","Determinants","Linear Programming","Probability"]},
+    {name:"Calculus",chapters:["Continuity & Differentiability","Applications of Derivatives","Integrals","Applications of Integrals","Differential Equations"]},
+    {name:"Vectors & 3D Geometry",chapters:["Vector Algebra","3D Geometry"]},
+  ],
+};
+
 const SUBJECTS = Object.keys(CHAPTERS);
 const STUDY_WORK = ['Theory Revised','DPP Solved','PYQs Practiced','Practice Sheet Attempted','Formula Revised','Extra Book Solved'];
 const MOODS = ['Excellent','Good','Okay','Tired','Rough'];
@@ -499,51 +545,79 @@ function updateChUI(sub,ch,idx){
   renderStats(sub); updateSidebar();
 }
 
-function renderChapters(sub){
-  const container=document.getElementById('chs-'+sub);
-  container.innerHTML=CHAPTERS[sub].map((ch,idx)=>{
-    const p=chPct(sub,ch.name);
-    let bc='bn',bl='Not started';
-    if(p===100){bc='bd';bl='Done';}else if(p>0){bc='bp';bl='In progress';}
-    const topicsHTML=ch.topics.map(t=>{
-      const tid=`tk-${sub}-${idx}-${sid(t)}`;
-      const chk=getF(sub,ch.name,'topic_'+t,false);
-      const esc=ch.name.replace(/'/g,"\\'").replace(/\n/g,'');
-      const tesc=t.replace(/'/g,"\\'");
-      return `<div class="chk-item"><input type="checkbox" id="${tid}" ${chk?'checked':''} onchange="setF('${sub}','${esc}','topic_${tesc}',this.checked);updateChUI('${sub}','${esc}',${idx})"><label for="${tid}">${t}</label></div>`;
-    }).join('');
-    const ff=[['notes_done','CW notes done'],['hw_done','HW / DPPs done'],['mains_pyq','Mains PYQs done'],['adv_pyq','Advanced PYQs done'],['extra_book','Extra book done']];
-    const esc=ch.name.replace(/'/g,"\\'");
-    const checksHTML=ff.map(([f,lbl])=>{
-      const fid=`fk-${sub}-${idx}-${f}`;
-      const chk=getF(sub,ch.name,f,false);
-      return `<div class="chk-item"><input type="checkbox" id="${fid}" ${chk?'checked':''} onchange="setF('${sub}','${esc}','${f}',this.checked);updateChUI('${sub}','${esc}',${idx})"><label for="${fid}">${lbl}</label></div>`;
-    }).join('');
-    const rev=getF(sub,ch.name,'revisions',0);
-    const mis=getF(sub,ch.name,'mistakes',0);
-    const dbt=getF(sub,ch.name,'doubts','')||'';
-    return `<div class="chapter-card">
-      <div class="ch-header" onclick="toggleCh('${sub}',${idx})">
-        <span class="ch-num">${String(idx+1).padStart(2,'0')}</span>
-        <span class="ch-name">${ch.name}</span>
-        <span class="ch-badge ${bc}" id="cbg-${sub}-${idx}">${bl}</span>
-        <div class="ch-pbar"><div class="ch-pfill" id="cf-${sub}-${idx}" style="width:${p}%"></div></div>
-        <span class="ch-pct" id="cp-${sub}-${idx}">${p}%</span>
-        <span class="ch-chev" id="cv-${sub}-${idx}">&#9654;</span>
-      </div>
-      <div class="ch-body" id="cb-${sub}-${idx}">
-        <div class="ch-grid">
-          <div><div class="slbl">Subtopics</div>${topicsHTML}</div>
-          <div>
-            <div class="slbl">Completion</div>${checksHTML}
-            <div class="slbl" style="margin-top:14px">Tracking</div>
-            <div class="num-item"><label>Revisions done</label><input type="number" min="0" max="50" value="${rev}" onchange="setF('${sub}','${esc}','revisions',parseInt(this.value)||0);renderStats('${sub}');updateSidebar()"></div>
-            <div class="num-item"><label>Mistakes count</label><input type="number" min="0" max="999" value="${mis}" onchange="setF('${sub}','${esc}','mistakes',parseInt(this.value)||0);renderStats('${sub}');updateSidebar()"></div>
-            <div class="slbl" style="margin-top:14px">Doubts</div>
-            <textarea class="dbox" placeholder="Write doubts..." onchange="setF('${sub}','${esc}','doubts',this.value);renderStats('${sub}')">${dbt}</textarea>
-          </div>
+function renderChapterCard(sub,ch,idx){
+  const p=chPct(sub,ch.name);
+  let bc='bn',bl='Not started';
+  if(p===100){bc='bd';bl='Done';}else if(p>0){bc='bp';bl='In progress';}
+  const topicsHTML=ch.topics.map(t=>{
+    const tid=`tk-${sub}-${idx}-${sid(t)}`;
+    const chk=getF(sub,ch.name,'topic_'+t,false);
+    const esc=ch.name.replace(/'/g,"\\'").replace(/\n/g,'');
+    const tesc=t.replace(/'/g,"\\'");
+    return `<div class="chk-item"><input type="checkbox" id="${tid}" ${chk?'checked':''} onchange="setF('${sub}','${esc}','topic_${tesc}',this.checked);updateChUI('${sub}','${esc}',${idx})"><label for="${tid}">${t}</label></div>`;
+  }).join('');
+  const ff=[['notes_done','CW notes done'],['hw_done','HW / DPPs done'],['mains_pyq','Mains PYQs done'],['adv_pyq','Advanced PYQs done'],['extra_book','Extra book done']];
+  const esc=ch.name.replace(/'/g,"\\'");
+  const checksHTML=ff.map(([f,lbl])=>{
+    const fid=`fk-${sub}-${idx}-${f}`;
+    const chk=getF(sub,ch.name,f,false);
+    return `<div class="chk-item"><input type="checkbox" id="${fid}" ${chk?'checked':''} onchange="setF('${sub}','${esc}','${f}',this.checked);updateChUI('${sub}','${esc}',${idx})"><label for="${fid}">${lbl}</label></div>`;
+  }).join('');
+  const rev=getF(sub,ch.name,'revisions',0);
+  const mis=getF(sub,ch.name,'mistakes',0);
+  const dbt=getF(sub,ch.name,'doubts','')||'';
+  return `<div class="chapter-card">
+    <div class="ch-header" onclick="toggleCh('${sub}',${idx})">
+      <span class="ch-num">${String(idx+1).padStart(2,'0')}</span>
+      <span class="ch-name">${ch.name}</span>
+      <span class="ch-badge ${bc}" id="cbg-${sub}-${idx}">${bl}</span>
+      <div class="ch-pbar"><div class="ch-pfill" id="cf-${sub}-${idx}" style="width:${p}%"></div></div>
+      <span class="ch-pct" id="cp-${sub}-${idx}">${p}%</span>
+      <span class="ch-chev" id="cv-${sub}-${idx}">&#9654;</span>
+    </div>
+    <div class="ch-body" id="cb-${sub}-${idx}">
+      <div class="ch-grid">
+        <div><div class="slbl">Subtopics</div>${topicsHTML}</div>
+        <div>
+          <div class="slbl">Completion</div>${checksHTML}
+          <div class="slbl" style="margin-top:14px">Tracking</div>
+          <div class="num-item"><label>Revisions done</label><input type="number" min="0" max="50" value="${rev}" onchange="setF('${sub}','${esc}','revisions',parseInt(this.value)||0);renderStats('${sub}');updateSidebar()"></div>
+          <div class="num-item"><label>Mistakes count</label><input type="number" min="0" max="999" value="${mis}" onchange="setF('${sub}','${esc}','mistakes',parseInt(this.value)||0);renderStats('${sub}');updateSidebar()"></div>
+          <div class="slbl" style="margin-top:14px">Doubts</div>
+          <textarea class="dbox" placeholder="Write doubts..." onchange="setF('${sub}','${esc}','doubts',this.value);renderStats('${sub}')">${dbt}</textarea>
         </div>
       </div>
+    </div>
+  </div>`;
+}
+
+function toggleGrp(sub,gi){
+  const chev=document.getElementById(`gchev-${sub}-${gi}`);
+  const body=document.getElementById(`gbody-${sub}-${gi}`);
+  chev.classList.toggle('open');
+  body.classList.toggle('open');
+}
+
+function renderChapters(sub){
+  const container=document.getElementById('chs-'+sub);
+  const groups=GROUPS[sub]||[];
+  const allChapters=CHAPTERS[sub];
+  const chIndexMap={};
+  allChapters.forEach((ch,i)=>chIndexMap[ch.name]=i);
+
+  container.innerHTML=groups.map((grp,gi)=>{
+    const grpChapters=grp.chapters.map(name=>allChapters.find(c=>c.name===name)).filter(Boolean);
+    const cardsHTML=grpChapters.map(ch=>{
+      const idx=chIndexMap[ch.name];
+      return renderChapterCard(sub,ch,idx);
+    }).join('');
+    return `<div class="grp-wrap">
+      <div class="grp-header" onclick="toggleGrp('${sub}',${gi})">
+        <span class="grp-label">${grp.name}</span>
+        <span class="grp-pill">${grpChapters.length} chapters</span>
+        <span class="grp-chev open" id="gchev-${sub}-${gi}">&#9654;</span>
+      </div>
+      <div class="grp-body open" id="gbody-${sub}-${gi}">${cardsHTML}</div>
     </div>`;
   }).join('');
 }
