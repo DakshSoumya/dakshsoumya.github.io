@@ -217,6 +217,11 @@ select.field-input{cursor:pointer}
 .streak-num{font-size:20px;font-weight:700;color:var(--orange);font-family:var(--mono)}
 .streak-lbl{font-size:11px;color:var(--text3);line-height:1.4}
 
+/* YEAR SEPARATOR */
+.year-sep{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);margin:24px 0 10px;display:flex;align-items:center;gap:10px}
+.year-sep::after{content:'';flex:1;height:1px;background:var(--border)}
+.year-sep:first-child{margin-top:0}
+
 /* CHAPTER GROUPS */
 .grp-wrap{margin-bottom:18px}
 .grp-header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;cursor:pointer;user-select:none;transition:background .15s}
@@ -241,16 +246,10 @@ select.field-input{cursor:pointer}
     <div class="nav-item active" onclick="showPage('diary')"><span class="nav-dot"></span>Class Tracker</div>
   </div>
   <div class="nav-sec">
-    <div class="nav-lbl">Class 11</div>
-    <div class="nav-item" onclick="showPage('phy11')"><span class="nav-dot"></span>Physics<span class="nav-count" id="nc-phy11">0%</span></div>
-    <div class="nav-item" onclick="showPage('chem11')"><span class="nav-dot"></span>Chemistry<span class="nav-count" id="nc-chem11">0%</span></div>
-    <div class="nav-item" onclick="showPage('math11')"><span class="nav-dot"></span>Maths<span class="nav-count" id="nc-math11">0%</span></div>
-  </div>
-  <div class="nav-sec">
-    <div class="nav-lbl">Class 12</div>
-    <div class="nav-item" onclick="showPage('phy12')"><span class="nav-dot"></span>Physics<span class="nav-count" id="nc-phy12">0%</span></div>
-    <div class="nav-item" onclick="showPage('chem12')"><span class="nav-dot"></span>Chemistry<span class="nav-count" id="nc-chem12">0%</span></div>
-    <div class="nav-item" onclick="showPage('math12')"><span class="nav-dot"></span>Maths<span class="nav-count" id="nc-math12">0%</span></div>
+    <div class="nav-lbl">Subjects</div>
+    <div class="nav-item" onclick="showPage('physics')"><span class="nav-dot"></span>Physics<span class="nav-count" id="nc-physics">0%</span></div>
+    <div class="nav-item" onclick="showPage('chemistry')"><span class="nav-dot"></span>Chemistry<span class="nav-count" id="nc-chemistry">0%</span></div>
+    <div class="nav-item" onclick="showPage('maths')"><span class="nav-dot"></span>Maths<span class="nav-count" id="nc-maths">0%</span></div>
   </div>
   <div class="nav-sec">
     <div class="nav-lbl">Tools</div>
@@ -398,6 +397,26 @@ select.field-input{cursor:pointer}
   <div class="page-sub">Resonance Modules · Black Book · Arihant PYQ</div>
   <div class="stats-grid" id="stats-math12"></div>
   <div id="chs-math12"></div>
+</div>
+
+<!-- COMBINED SUBJECT PAGES -->
+<div class="page" id="page-physics">
+  <div class="page-title">Physics</div>
+  <div class="page-sub">Class 11 & 12 · HC Verma · Physics Galaxy · Resonance Modules</div>
+  <div class="stats-grid" id="stats-physics"></div>
+  <div id="chs-physics"></div>
+</div>
+<div class="page" id="page-chemistry">
+  <div class="page-title">Chemistry</div>
+  <div class="page-sub">Class 11 & 12 · NCERT · N Awasthi · MS Chauhan · Resonance Modules</div>
+  <div class="stats-grid" id="stats-chemistry"></div>
+  <div id="chs-chemistry"></div>
+</div>
+<div class="page" id="page-maths">
+  <div class="page-title">Maths</div>
+  <div class="page-sub">Class 11 & 12 · Black Book · Arihant PYQ · Resonance Modules</div>
+  <div class="stats-grid" id="stats-maths"></div>
+  <div id="chs-maths"></div>
 </div>
 
 <!-- MISTAKE LOGBOOK -->
@@ -640,11 +659,16 @@ function overallPct(){
   return count>0?Math.round(sum/count):0;
 }
 
+function combinedStats(sub11,sub12){
+  const s1=subStats(sub11), s2=subStats(sub12);
+  return {done:s1.done+s2.done,total:s1.total+s2.total,mistakes:s1.mistakes+s2.mistakes,revisions:s1.revisions+s2.revisions,doubts:s1.doubts+s2.doubts};
+}
 function updateSidebar(){
-  SUBJECTS.forEach(sub=>{
-    const s=subStats(sub);
-    const el=document.getElementById('nc-'+sub);
-    if(el) el.textContent=Math.round(s.done/s.total*100)+'%';
+  const pairs={physics:['phy11','phy12'],chemistry:['chem11','chem12'],maths:['math11','math12']};
+  Object.entries(pairs).forEach(([key,[s1,s2]])=>{
+    const cs=combinedStats(s1,s2);
+    const el=document.getElementById('nc-'+key);
+    if(el) el.textContent=Math.round(cs.done/cs.total*100)+'%';
   });
   const p=overallPct();
   document.getElementById('overall-pct').textContent=p+'%';
@@ -652,13 +676,58 @@ function updateSidebar(){
 }
 
 function renderStats(sub){
+  const el=document.getElementById('stats-'+sub);
+  if(!el) return;
   const s=subStats(sub);
-  document.getElementById('stats-'+sub).innerHTML=`
+  el.innerHTML=`
     <div class="stat-card"><div class="stat-num" style="color:var(--accent)">${s.done}/${s.total}</div><div class="stat-lbl">Chapters done</div></div>
     <div class="stat-card"><div class="stat-num" style="color:var(--blue)">${s.revisions}</div><div class="stat-lbl">Revisions</div></div>
     <div class="stat-card"><div class="stat-num" style="color:var(--red)">${s.mistakes}</div><div class="stat-lbl">Mistakes</div></div>
     <div class="stat-card"><div class="stat-num" style="color:var(--purple)">${s.doubts}</div><div class="stat-lbl">With doubts</div></div>
   `;
+}
+
+function renderCombinedSubject(key,sub11,sub12){
+  const cs=combinedStats(sub11,sub12);
+  document.getElementById('stats-'+key).innerHTML=`
+    <div class="stat-card"><div class="stat-num" style="color:var(--accent)">${cs.done}/${cs.total}</div><div class="stat-lbl">Chapters done</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--blue)">${cs.revisions}</div><div class="stat-lbl">Revisions</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--red)">${cs.mistakes}</div><div class="stat-lbl">Mistakes</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--purple)">${cs.doubts}</div><div class="stat-lbl">With doubts</div></div>
+  `;
+  const container=document.getElementById('chs-'+key);
+  const chIndexMap11={}, chIndexMap12={};
+  CHAPTERS[sub11].forEach((ch,i)=>chIndexMap11[ch.name]=i);
+  CHAPTERS[sub12].forEach((ch,i)=>chIndexMap12[ch.name]=i);
+
+  const render11=GROUPS[sub11].map((grp,gi)=>{
+    const grpChs=grp.chapters.map(name=>CHAPTERS[sub11].find(c=>c.name===name)).filter(Boolean);
+    const cards=grpChs.map(ch=>renderChapterCard(sub11,ch,chIndexMap11[ch.name])).join('');
+    return `<div class="grp-wrap">
+      <div class="grp-header" onclick="toggleGrp('${sub11}',${gi})">
+        <span class="grp-label">${grp.name}</span>
+        <span class="grp-pill">${grpChs.length} chapters</span>
+        <span class="grp-chev open" id="gchev-${sub11}-${gi}">&#9654;</span>
+      </div>
+      <div class="grp-body open" id="gbody-${sub11}-${gi}">${cards}</div>
+    </div>`;
+  }).join('');
+
+  const render12=GROUPS[sub12].map((grp,gi)=>{
+    const grpChs=grp.chapters.map(name=>CHAPTERS[sub12].find(c=>c.name===name)).filter(Boolean);
+    const cards=grpChs.map(ch=>renderChapterCard(sub12,ch,chIndexMap12[ch.name])).join('');
+    return `<div class="grp-wrap">
+      <div class="grp-header" onclick="toggleGrp('${sub12}',${gi})">
+        <span class="grp-label">${grp.name}</span>
+        <span class="grp-pill">${grpChs.length} chapters</span>
+        <span class="grp-chev open" id="gchev-${sub12}-${gi}">&#9654;</span>
+      </div>
+      <div class="grp-body open" id="gbody-${sub12}-${gi}">${cards}</div>
+    </div>`;
+  }).join('');
+
+  container.innerHTML=
+    `<div class="year-sep">Class 11</div>${render11}<div class="year-sep">Class 12</div>${render12}`;
 }
 
 function sid(s){ return s.replace(/[^a-zA-Z0-9]/g,'_'); }
@@ -667,6 +736,9 @@ function toggleCh(sub,idx){
   document.getElementById(`cb-${sub}-${idx}`).classList.toggle('open');
   document.getElementById(`cv-${sub}-${idx}`).classList.toggle('open');
 }
+
+const SUB_TO_COMBINED={phy11:'physics',phy12:'physics',chem11:'chemistry',chem12:'chemistry',math11:'maths',math12:'maths'};
+const COMBINED_PAIRS={physics:['phy11','phy12'],chemistry:['chem11','chem12'],maths:['math11','math12']};
 
 function updateChUI(sub,ch,idx){
   const p=chPct(sub,ch);
@@ -680,7 +752,20 @@ function updateChUI(sub,ch,idx){
     if(p===100){c='bd';l='Done';}else if(p>0){c='bp';l='In progress';}
     badge.className='ch-badge '+c; badge.textContent=l;
   }
-  renderStats(sub); updateSidebar();
+  renderStats(sub);
+  const combKey=SUB_TO_COMBINED[sub];
+  if(combKey){
+    const [s1,s2]=COMBINED_PAIRS[combKey];
+    const cs=combinedStats(s1,s2);
+    const el=document.getElementById('stats-'+combKey);
+    if(el) el.innerHTML=`
+      <div class="stat-card"><div class="stat-num" style="color:var(--accent)">${cs.done}/${cs.total}</div><div class="stat-lbl">Chapters done</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--blue)">${cs.revisions}</div><div class="stat-lbl">Revisions</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--red)">${cs.mistakes}</div><div class="stat-lbl">Mistakes</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--purple)">${cs.doubts}</div><div class="stat-lbl">With doubts</div></div>
+    `;
+  }
+  updateSidebar();
 }
 
 function renderChapterCard(sub,ch,idx){
@@ -768,6 +853,9 @@ function showPage(id){
     if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active');
   });
   if(id==='diary') renderDiary();
+  if(id==='physics') renderCombinedSubject('physics','phy11','phy12');
+  if(id==='chemistry') renderCombinedSubject('chemistry','chem11','chem12');
+  if(id==='maths') renderCombinedSubject('maths','math11','math12');
   if(id==='mistakes') renderMistakes();
   if(id==='revision') renderRevision();
   if(id==='report') renderWeeklyReport();
