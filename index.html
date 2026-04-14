@@ -248,9 +248,44 @@ select.field-input{cursor:pointer}
 .grp-chev.open{transform:rotate(90deg)}
 .grp-body{display:none;padding-top:8px}
 .grp-body.open{display:block}
+
+/* ACCOUNT */
+.auth-gate{position:fixed;inset:0;background:rgba(15,15,15,.96);display:none;align-items:center;justify-content:center;padding:20px;z-index:2000}
+.auth-card{width:min(440px,100%);background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px}
+.auth-title{font-size:24px;font-weight:700;color:var(--accent);margin-bottom:6px}
+.auth-sub{font-size:12px;color:var(--text3);font-family:var(--mono);margin-bottom:16px}
+.auth-tabs{display:flex;gap:8px;margin-bottom:14px}
+.auth-tab{flex:1;padding:8px 12px;border-radius:7px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer}
+.auth-tab.active{border-color:var(--accent);color:var(--accent);background:rgba(200,245,66,.08)}
+.auth-fields{display:flex;flex-direction:column;gap:10px}
+.auth-msg{margin-top:12px;min-height:18px;font-size:12px;font-family:var(--mono)}
+.auth-msg.ok{color:var(--green)}
+.auth-msg.err{color:var(--red)}
+.account-box{padding:12px 20px;border-bottom:1px solid var(--border)}
+.account-lbl{font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--text3)}
+.account-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:7px}
+.account-user{font-size:13px;font-weight:600;color:var(--text)}
+.logout-btn{padding:4px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-size:11px;font-family:var(--mono)}
+.logout-btn:hover{border-color:var(--accent);color:var(--accent)}
 </style>
 </head>
 <body>
+<div class="auth-gate" id="auth-gate">
+  <div class="auth-card">
+    <div class="auth-title">JEE Tracker</div>
+    <div class="auth-sub">Create an account or login to continue. Your progress is stored under your username on this device.</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="setAuthMode('login')">Login</button>
+      <button class="auth-tab" id="tab-register" onclick="setAuthMode('register')">Register</button>
+    </div>
+    <div class="auth-fields">
+      <input class="field-input" id="auth-username" type="text" maxlength="24" placeholder="Unique username">
+      <input class="field-input" id="auth-password" type="password" maxlength="72" placeholder="Password">
+      <button class="add-btn" onclick="submitAuth()" id="auth-submit">Login</button>
+    </div>
+    <div class="auth-msg" id="auth-msg"></div>
+  </div>
+</div>
 <div class="layout">
 <aside class="sidebar">
   <div class="logo">
@@ -258,6 +293,13 @@ select.field-input{cursor:pointer}
     <div class="logo-text">
       <div class="logo-title">JEE Tracker</div>
       <div class="logo-sub">Base PU · Class 11 & 12</div>
+    </div>
+  </div>
+  <div class="account-box">
+    <div class="account-lbl">Account</div>
+    <div class="account-row">
+      <span class="account-user" id="account-user">—</span>
+      <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
   </div>
   <div class="nav-sec">
@@ -746,9 +788,74 @@ const STUDY_WORK = ['Theory Revised','DPP Solved','PYQs Practiced','Practice She
 const MOODS = ['Excellent','Good','Okay','Tired','Rough'];
 
 let diaryDate = new Date(); diaryDate.setHours(0,0,0,0);
+const APP_PREFIX='jee2';
+const USERS_KEY=`${APP_PREFIX}_users`;
+const SESSION_KEY=`${APP_PREFIX}_session`;
+let currentUser=null;
+let authMode='login';
 
-function ld(k,d){ try{ const v=localStorage.getItem('jee2_'+k); return v!==null?JSON.parse(v):d; }catch(e){ return d; } }
-function sv(k,v){ try{ localStorage.setItem('jee2_'+k,JSON.stringify(v)); }catch(e){} showSaved(); }
+function normUser(u){ return (u||'').trim().toLowerCase(); }
+function readUsers(){ try{ return JSON.parse(localStorage.getItem(USERS_KEY)||'{}'); }catch(e){ return {}; } }
+function writeUsers(users){ localStorage.setItem(USERS_KEY,JSON.stringify(users)); }
+function storagePrefix(){ return `${APP_PREFIX}_${currentUser||'anon'}_`; }
+
+function setAuthMode(mode){
+  authMode=mode;
+  document.getElementById('tab-login').classList.toggle('active',mode==='login');
+  document.getElementById('tab-register').classList.toggle('active',mode==='register');
+  document.getElementById('auth-submit').textContent=mode==='login'?'Login':'Create Account';
+  setAuthMsg('');
+}
+function setAuthMsg(msg,isErr=false){
+  const el=document.getElementById('auth-msg');
+  el.textContent=msg;
+  el.className='auth-msg'+(msg?(isErr?' err':' ok'):'');
+}
+function setSession(user){
+  currentUser=user;
+  localStorage.setItem(SESSION_KEY,user);
+  document.getElementById('account-user').textContent=user;
+}
+function submitAuth(){
+  const uname=(document.getElementById('auth-username').value||'').trim();
+  const pass=document.getElementById('auth-password').value||'';
+  const normalized=normUser(uname);
+  if(!/^[a-z0-9_]{3,24}$/i.test(uname)){ setAuthMsg('Username must be 3-24 letters, numbers, or _.',true); return; }
+  if(pass.length<4){ setAuthMsg('Password must be at least 4 characters.',true); return; }
+  const users=readUsers();
+  if(authMode==='register'){
+    if(users[normalized]){ setAuthMsg('Username already exists. Try logging in.',true); return; }
+    users[normalized]={username:uname,password:pass,createdAt:Date.now()};
+    writeUsers(users);
+    setSession(users[normalized].username);
+    setAuthMsg('Account created. Loading tracker...');
+    startApp();
+    return;
+  }
+  const user=users[normalized];
+  if(!user||user.password!==pass){ setAuthMsg('Invalid username or password.',true); return; }
+  setSession(user.username);
+  setAuthMsg('Login successful. Loading tracker...');
+  startApp();
+}
+function logout(){
+  localStorage.removeItem(SESSION_KEY);
+  currentUser=null;
+  document.getElementById('auth-password').value='';
+  document.getElementById('auth-gate').style.display='flex';
+}
+function restoreSession(){
+  const saved=localStorage.getItem(SESSION_KEY);
+  if(!saved) return false;
+  const users=readUsers();
+  const user=users[normUser(saved)];
+  if(!user) return false;
+  setSession(user.username);
+  return true;
+}
+
+function ld(k,d){ try{ const v=localStorage.getItem(storagePrefix()+k); return v!==null?JSON.parse(v):d; }catch(e){ return d; } }
+function sv(k,v){ try{ localStorage.setItem(storagePrefix()+k,JSON.stringify(v)); }catch(e){} showSaved(); }
 let saveTimer;
 function showSaved(){ const el=document.getElementById('save-ind'); el.classList.add('show'); clearTimeout(saveTimer); saveTimer=setTimeout(()=>el.classList.remove('show'),1500); }
 
@@ -1106,7 +1213,8 @@ function renderHistory(){
   const allKeys=[];
   for(let i=0;i<localStorage.length;i++){
     const k=localStorage.key(i);
-    if(k&&k.startsWith('jee2_diary_')&&k.endsWith('_mood')) allKeys.push(k.replace('jee2_diary_','').replace('_mood',''));
+    const start=`${storagePrefix()}diary_`;
+    if(k&&k.startsWith(start)&&k.endsWith('_mood')) allKeys.push(k.replace(start,'').replace('_mood',''));
   }
   const cur=dateKey(diaryDate);
   const past=allKeys.filter(k=>k<cur).sort().reverse().slice(0,10);
@@ -1114,14 +1222,14 @@ function renderHistory(){
   if(past.length===0){ container.innerHTML='<div style="color:var(--text3);font-size:13px;font-family:var(--mono)">No past entries yet.</div>'; return; }
   const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   container.innerHTML=past.map(k=>{
-    const mood=ld('jee2_diary_'+k+'_mood',null);
-    const mistake=ld('jee2_diary_'+k+'_mistake','')||'';
-    const improve=ld('jee2_diary_'+k+'_improve','')||'';
-    const commits=ld('jee2_diary_'+k+'_commitments',[])||[];
-    const sw=ld('jee2_diary_'+k+'_study-work',[])||[];
-    const hasTest=ld('jee2_diary_'+k+'_has-test',false);
-    const score=ld('jee2_diary_'+k+'_test-score','')||'';
-    const tname=ld('jee2_diary_'+k+'_test-name','')||'';
+    const mood=ld('diary_'+k+'_mood',null);
+    const mistake=ld('diary_'+k+'_mistake','')||'';
+    const improve=ld('diary_'+k+'_improve','')||'';
+    const commits=ld('diary_'+k+'_commitments',[])||[];
+    const sw=ld('diary_'+k+'_study-work',[])||[];
+    const hasTest=ld('diary_'+k+'_has-test',false);
+    const score=ld('diary_'+k+'_test-score','')||'';
+    const tname=ld('diary_'+k+'_test-name','')||'';
     const d=new Date(k+'T00:00:00');
     const dateStr=d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear();
     return `<div class="hist-item">
@@ -1300,9 +1408,9 @@ function calcStreak(){
   let streak=0, d=new Date(today);
   while(true){
     const k=dateKey(d);
-    const mood=ld('jee2_diary_'+k+'_mood',null);
-    const sw=ld('jee2_diary_'+k+'_study-work',[])||[];
-    const commits=ld('jee2_diary_'+k+'_commitments',[])||[];
+    const mood=ld('diary_'+k+'_mood',null);
+    const sw=ld('diary_'+k+'_study-work',[])||[];
+    const commits=ld('diary_'+k+'_commitments',[])||[];
     const active=mood||(sw.length>0)||(commits.some(c=>c.done));
     if(!active) break;
     streak++;
@@ -1480,9 +1588,9 @@ function renderWeeklyReport(){
   const moodCounts={};
   days.forEach(d=>{
     const k=dateKey(d);
-    const mood=ld('jee2_diary_'+k+'_mood',null);
-    const sw=ld('jee2_diary_'+k+'_study-work',[])||[];
-    const hasTest=ld('jee2_diary_'+k+'_has-test',false);
+    const mood=ld('diary_'+k+'_mood',null);
+    const sw=ld('diary_'+k+'_study-work',[])||[];
+    const hasTest=ld('diary_'+k+'_has-test',false);
     if(mood){moodCounts[mood]=(moodCounts[mood]||0)+1;moodSum+=moodScores[mood]||3;moodDays++;}
     if(hasTest) tests++;
     if(sw.length>0) swTotal+=sw.length;
@@ -1499,8 +1607,8 @@ function renderWeeklyReport(){
   `;
   document.getElementById('day-dots').innerHTML=days.map((d,i)=>{
     const k=dateKey(d);
-    const mood=ld('jee2_diary_'+k+'_mood',null);
-    const sw=ld('jee2_diary_'+k+'_study-work',[])||[];
+    const mood=ld('diary_'+k+'_mood',null);
+    const sw=ld('diary_'+k+'_study-work',[])||[];
     const active=mood||sw.length>0;
     const isFuture=d>today;
     const cls=isFuture?'day-future':active?'day-active':'day-inactive';
@@ -1516,10 +1624,29 @@ function renderWeeklyReport(){
   if(activeDays>0) document.getElementById('mood-breakdown').innerHTML+=`<div class="prod-score">Productivity score: <strong style="color:var(--accent)">${prodScore}%</strong> based on study tasks completed per active day.</div>`;
 }
 
-SUBJECTS.forEach(sub=>{ renderStats(sub); renderChapters(sub); });
-updateSidebar();
-updateStreak();
-renderDiary();
+let appStarted=false;
+function startApp(){
+  if(!currentUser) return;
+  document.getElementById('auth-gate').style.display='none';
+  if(appStarted){
+    showPage('diary');
+    updateSidebar();
+    updateStreak();
+    return;
+  }
+  SUBJECTS.forEach(sub=>{ renderStats(sub); renderChapters(sub); });
+  updateSidebar();
+  updateStreak();
+  renderDiary();
+  appStarted=true;
+}
+
+if(!restoreSession()){
+  document.getElementById('auth-gate').style.display='flex';
+  setAuthMode('login');
+}else{
+  startApp();
+}
 </script>
 </body>
 </html>
