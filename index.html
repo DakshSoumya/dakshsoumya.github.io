@@ -217,6 +217,20 @@ select.field-input{cursor:pointer}
 .streak-num{font-size:20px;font-weight:700;color:var(--orange);font-family:var(--mono)}
 .streak-lbl{font-size:11px;color:var(--text3);line-height:1.4}
 
+/* MOCK TESTS */
+.mt-item{padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px}
+.mt-item-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.mt-tag{font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:99px;font-weight:500;white-space:nowrap}
+.mt-name{font-size:13px;font-weight:600;color:var(--text);flex:1}
+.mt-date{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.mt-score-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.mt-score{font-size:22px;font-weight:700;font-family:var(--mono)}
+.mt-pct{font-size:12px;font-family:var(--mono);color:var(--text3);min-width:36px}
+.mt-subs{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.mt-sub{font-size:11px;font-family:var(--mono);padding:2px 10px;border-radius:6px;background:var(--surface2);color:var(--text3)}
+.graph-wrap{width:100%;overflow-x:auto;margin-top:6px}
+.graph-empty{color:var(--text3);font-size:13px;font-family:var(--mono);text-align:center;padding:40px 0}
+
 /* YEAR SEPARATOR */
 .year-sep{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);margin:24px 0 10px;display:flex;align-items:center;gap:10px}
 .year-sep::after{content:'';flex:1;height:1px;background:var(--border)}
@@ -255,6 +269,7 @@ select.field-input{cursor:pointer}
     <div class="nav-lbl">Tools</div>
     <div class="nav-item" onclick="showPage('mistakes')"><span class="nav-dot"></span>Mistake Logbook</div>
     <div class="nav-item" onclick="showPage('revision')"><span class="nav-dot"></span>Spaced Revision</div>
+    <div class="nav-item" onclick="showPage('mocktests')"><span class="nav-dot"></span>Mock Tests</div>
     <div class="nav-item" onclick="showPage('report')"><span class="nav-dot"></span>Weekly Report</div>
   </div>
   <div class="sidebar-bottom">
@@ -510,6 +525,88 @@ select.field-input{cursor:pointer}
     <div class="dcard-title"><span></span>Mood Breakdown</div>
     <div id="mood-breakdown"></div>
   </div>
+  <div class="dcard" style="margin-top:14px">
+    <div class="dcard-title"><span></span>Mock Test Scores — All Time</div>
+    <div style="display:flex;gap:14px;margin-bottom:8px;font-size:11px;font-family:var(--mono)">
+      <span style="display:flex;align-items:center;gap:5px"><svg width="14" height="4"><line x1="0" y1="2" x2="14" y2="2" stroke="var(--blue)" stroke-width="2.5" stroke-linecap="round"/></svg>JEE Mains</span>
+      <span style="display:flex;align-items:center;gap:5px"><svg width="14" height="4"><line x1="0" y1="2" x2="14" y2="2" stroke="var(--orange)" stroke-width="2.5" stroke-linecap="round"/></svg>JEE Advanced</span>
+    </div>
+    <div class="graph-wrap" id="test-graph"></div>
+  </div>
+</div>
+
+<!-- MOCK TESTS PAGE -->
+<div class="page" id="page-mocktests">
+  <div class="page-title">Mock Test Tracker</div>
+  <div class="page-sub">Log JEE Mains & Advanced scores · track improvement over time</div>
+  <div class="dcard">
+    <div class="dcard-title"><span></span>Add Test Result</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+      <div>
+        <div class="field-lbl">Type</div>
+        <select class="field-input" id="mt-type">
+          <option value="">Select type</option>
+          <option value="mains">JEE Mains</option>
+          <option value="advanced">JEE Advanced</option>
+        </select>
+      </div>
+      <div>
+        <div class="field-lbl">Test Name</div>
+        <input class="field-input" type="text" id="mt-name" placeholder="e.g. Allen Mock 3, FIITJEE Part Test">
+      </div>
+      <div>
+        <div class="field-lbl">Date</div>
+        <input class="field-input" type="date" id="mt-date">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+      <div>
+        <div class="field-lbl">Total Score</div>
+        <input class="field-input" type="number" id="mt-score" placeholder="e.g. 192" min="0">
+      </div>
+      <div>
+        <div class="field-lbl">Max Score</div>
+        <input class="field-input" type="number" id="mt-max" placeholder="e.g. 300" min="1">
+      </div>
+      <div>
+        <div class="field-lbl">Percentile (optional)</div>
+        <input class="field-input" type="number" id="mt-percentile" placeholder="e.g. 97.4" min="0" max="100" step="0.01">
+      </div>
+      <div>
+        <div class="field-lbl">Rank (optional)</div>
+        <input class="field-input" type="number" id="mt-rank" placeholder="e.g. 1240" min="1">
+      </div>
+    </div>
+    <div style="margin-bottom:14px">
+      <div class="field-lbl" style="margin-bottom:8px">Subject-wise Scores (optional)</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+        <div>
+          <div class="field-lbl" style="color:var(--blue);font-size:10px">Physics</div>
+          <div style="display:flex;gap:5px">
+            <input class="field-input" type="number" id="mt-phy" placeholder="Score" min="0" style="flex:1">
+            <input class="field-input" type="number" id="mt-phy-max" placeholder="Max" min="0" style="flex:1">
+          </div>
+        </div>
+        <div>
+          <div class="field-lbl" style="color:var(--green);font-size:10px">Chemistry</div>
+          <div style="display:flex;gap:5px">
+            <input class="field-input" type="number" id="mt-chem" placeholder="Score" min="0" style="flex:1">
+            <input class="field-input" type="number" id="mt-chem-max" placeholder="Max" min="0" style="flex:1">
+          </div>
+        </div>
+        <div>
+          <div class="field-lbl" style="color:var(--purple);font-size:10px">Maths</div>
+          <div style="display:flex;gap:5px">
+            <input class="field-input" type="number" id="mt-math" placeholder="Score" min="0" style="flex:1">
+            <input class="field-input" type="number" id="mt-math-max" placeholder="Max" min="0" style="flex:1">
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="add-btn" onclick="addMockTest()">+ Add Test</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap" id="mt-filter"></div>
+  <div id="mt-list"></div>
 </div>
 
 </main>
@@ -885,7 +982,8 @@ function showPage(id){
   if(id==='maths') renderCombinedSubject('maths','math11','math12');
   if(id==='mistakes') renderMistakes();
   if(id==='revision') renderRevision();
-  if(id==='report') renderWeeklyReport();
+  if(id==='mocktests') renderMockTests();
+  if(id==='report'){renderWeeklyReport();renderTestGraph();}
 }
 
 function formatDate(d){
@@ -1046,6 +1144,149 @@ function renderDiary(){
   document.getElementById('diary-notes').value=getD('notes','')||'';
   renderCommitments();
   renderHistory();
+}
+
+/* ===== MOCK TESTS ===== */
+let mtFilter='all';
+function addMockTest(){
+  const type=document.getElementById('mt-type').value;
+  const name=document.getElementById('mt-name').value.trim();
+  const date=document.getElementById('mt-date').value;
+  const score=parseFloat(document.getElementById('mt-score').value);
+  const maxScore=parseFloat(document.getElementById('mt-max').value);
+  const percentile=parseFloat(document.getElementById('mt-percentile').value)||null;
+  const rank=parseInt(document.getElementById('mt-rank').value)||null;
+  const phy=parseFloat(document.getElementById('mt-phy').value)||null;
+  const phyMax=parseFloat(document.getElementById('mt-phy-max').value)||null;
+  const chem=parseFloat(document.getElementById('mt-chem').value)||null;
+  const chemMax=parseFloat(document.getElementById('mt-chem-max').value)||null;
+  const math=parseFloat(document.getElementById('mt-math').value)||null;
+  const mathMax=parseFloat(document.getElementById('mt-math-max').value)||null;
+  if(!type||!date||isNaN(score)||isNaN(maxScore)||maxScore<=0){alert('Type, Date, Score and Max Score are required.');return;}
+  const tests=ld('mock_tests',[]);
+  tests.push({id:Date.now(),type,name:name||(type==='mains'?'JEE Mains Mock':'JEE Advanced Mock'),date,score,maxScore,percentile,rank,phy,phyMax,chem,chemMax,math,mathMax});
+  tests.sort((a,b)=>a.date.localeCompare(b.date));
+  sv('mock_tests',tests);
+  ['mt-name','mt-score','mt-max','mt-percentile','mt-rank','mt-phy','mt-phy-max','mt-chem','mt-chem-max','mt-math','mt-math-max'].forEach(id=>{document.getElementById(id).value='';});
+  renderMockTests();
+}
+function delMockTest(id){
+  sv('mock_tests',(ld('mock_tests',[])).filter(t=>t.id!==id));
+  renderMockTests();
+}
+function setMtFilter(f){mtFilter=f;renderMockTests();}
+function renderMockTests(){
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let tests=ld('mock_tests',[]);
+  document.getElementById('mt-filter').innerHTML=['all','mains','advanced'].map(f=>
+    `<button class="ml-filter-btn${mtFilter===f?' active':''}" onclick="setMtFilter('${f}')">${f==='all'?'All Tests':f==='mains'?'JEE Mains':'JEE Advanced'}</button>`
+  ).join('');
+  if(mtFilter!=='all') tests=tests.filter(t=>t.type===mtFilter);
+  const el=document.getElementById('mt-list');
+  if(tests.length===0){
+    el.innerHTML='<div class="graph-empty">No mock tests logged yet. Start adding them above.</div>';
+    return;
+  }
+  el.innerHTML=[...tests].reverse().map(t=>{
+    const d=new Date(t.date+'T00:00:00');
+    const ds=d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear();
+    const pct=Math.round(t.score/t.maxScore*100);
+    const isMains=t.type==='mains';
+    const color=isMains?'var(--blue)':'var(--orange)';
+    const typeLbl=isMains?'JEE Mains':'JEE Advanced';
+    const bgAlpha=isMains?'rgba(74,158,255,.15)':'rgba(255,140,66,.15)';
+    let subHTML='';
+    if(t.phyMax||t.chemMax||t.mathMax){
+      subHTML='<div class="mt-subs">';
+      if(t.phy!==null&&t.phyMax) subHTML+=`<span class="mt-sub" style="color:var(--blue)">Phy: ${t.phy}/${t.phyMax}</span>`;
+      if(t.chem!==null&&t.chemMax) subHTML+=`<span class="mt-sub" style="color:var(--green)">Chem: ${t.chem}/${t.chemMax}</span>`;
+      if(t.math!==null&&t.mathMax) subHTML+=`<span class="mt-sub" style="color:var(--purple)">Math: ${t.math}/${t.mathMax}</span>`;
+      subHTML+='</div>';
+    }
+    let extraHTML='';
+    if(t.percentile||t.rank){
+      extraHTML='<div class="mt-subs" style="margin-top:4px">';
+      if(t.percentile) extraHTML+=`<span class="mt-sub">Percentile: ${t.percentile}</span>`;
+      if(t.rank) extraHTML+=`<span class="mt-sub">Rank: ${t.rank}</span>`;
+      extraHTML+='</div>';
+    }
+    return `<div class="mt-item">
+      <div class="mt-item-top">
+        <span class="mt-tag" style="background:${bgAlpha};color:${color}">${typeLbl}</span>
+        <span class="mt-name">${t.name}</span>
+        <span class="mt-date">${ds}</span>
+        <button class="del-btn" onclick="delMockTest(${t.id})">&#x2715;</button>
+      </div>
+      <div class="mt-score-row">
+        <span class="mt-score" style="color:${color}">${t.score}<span style="font-size:13px;color:var(--text3)">/${t.maxScore}</span></span>
+        <span class="mt-pct">${pct}%</span>
+        <div style="flex:1;height:5px;background:var(--border2);border-radius:3px;overflow:hidden;max-width:180px">
+          <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;transition:width .4s"></div>
+        </div>
+      </div>
+      ${subHTML}${extraHTML}
+    </div>`;
+  }).join('');
+}
+
+function renderTestGraph(){
+  const container=document.getElementById('test-graph');
+  if(!container) return;
+  const tests=ld('mock_tests',[]);
+  if(!tests||tests.length===0){container.innerHTML='<div class="graph-empty">No mock tests yet — add them in the Mock Tests section.</div>';return;}
+  const mains=tests.filter(t=>t.type==='mains');
+  const advanced=tests.filter(t=>t.type==='advanced');
+  if(mains.length+advanced.length===0){container.innerHTML='<div class="graph-empty">No test data yet.</div>';return;}
+  const allDates=[...new Set([...mains.map(t=>t.date),...advanced.map(t=>t.date)])].sort();
+  const n=allDates.length;
+  const W=700,H=240,pL=48,pR=24,pT=16,pB=48;
+  const cW=W-pL-pR, cH=H-pT-pB;
+  const xOf=date=>{const i=allDates.indexOf(date);return pL+(n<=1?cW/2:(i/(n-1))*cW);};
+  const yOf=pct=>pT+cH-(pct/100)*cH;
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let svg=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px" xmlns="http://www.w3.org/2000/svg">`;
+  // grid
+  [0,25,50,75,100].forEach(p=>{
+    const y=yOf(p);
+    svg+=`<line x1="${pL}" y1="${y}" x2="${W-pR}" y2="${y}" stroke="#2a2a2a" stroke-width="1"/>`;
+    svg+=`<text x="${pL-6}" y="${y+4}" text-anchor="end" font-size="10" fill="#555">${p}%</text>`;
+  });
+  // x labels
+  const step=Math.max(1,Math.ceil(n/7));
+  allDates.forEach((d,i)=>{
+    if(i%step===0||i===n-1){
+      const dt=new Date(d+'T00:00:00');
+      const lbl=dt.getDate()+' '+months[dt.getMonth()];
+      svg+=`<text x="${xOf(d)}" y="${H-pB+16}" text-anchor="middle" font-size="9" fill="#555">${lbl}</text>`;
+    }
+  });
+  // axes
+  svg+=`<line x1="${pL}" y1="${pT}" x2="${pL}" y2="${H-pB}" stroke="#383838" stroke-width="1"/>`;
+  svg+=`<line x1="${pL}" y1="${H-pB}" x2="${W-pR}" y2="${H-pB}" stroke="#383838" stroke-width="1"/>`;
+  // draw series
+  const drawSeries=(data,color)=>{
+    if(data.length===0) return '';
+    let out='';
+    if(data.length>1){
+      const pts=data.map(t=>`${xOf(t.date)},${yOf(t.score/t.maxScore*100)}`).join(' ');
+      out+=`<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>`;
+      // area fill
+      const first=data[0],last=data[data.length-1];
+      const areaPts=`${xOf(first.date)},${H-pB} ${data.map(t=>`${xOf(t.date)},${yOf(t.score/t.maxScore*100)}`).join(' ')} ${xOf(last.date)},${H-pB}`;
+      out+=`<polygon points="${areaPts}" fill="${color}" opacity="0.06"/>`;
+    }
+    data.forEach(t=>{
+      const x=xOf(t.date),y=yOf(t.score/t.maxScore*100);
+      const pct=Math.round(t.score/t.maxScore*100);
+      out+=`<circle cx="${x}" cy="${y}" r="5" fill="${color}" stroke="#0f0f0f" stroke-width="2"><title>${t.name}: ${t.score}/${t.maxScore} (${pct}%) — ${t.date}</title></circle>`;
+      out+=`<text x="${x}" y="${y-10}" text-anchor="middle" font-size="9" font-weight="600" fill="${color}">${pct}%</text>`;
+    });
+    return out;
+  };
+  svg+=drawSeries(mains,'#4a9eff');
+  svg+=drawSeries(advanced,'#ff8c42');
+  svg+='</svg>';
+  container.innerHTML=svg;
 }
 
 /* ===== STREAK ===== */
