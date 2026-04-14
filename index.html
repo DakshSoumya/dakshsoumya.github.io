@@ -465,7 +465,34 @@ select.field-input{cursor:pointer}
 <!-- SPACED REVISION -->
 <div class="page" id="page-revision">
   <div class="page-title">Spaced Revision Tracker</div>
-  <div class="page-sub">Intervals: 1 · 3 · 7 · 15 days · Click "Revised today" to reset the clock</div>
+  <div class="page-sub">Click "Revised today" on any chapter to reset its clock</div>
+  <div class="dcard" style="margin-bottom:18px">
+    <div class="dcard-title"><span></span>Revision Intervals <span style="font-size:11px;color:var(--text3);font-weight:400;font-family:var(--mono)">(days)</span></div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">1st</span>
+        <input type="number" id="ri-0" min="1" max="365" class="num-item input" style="width:62px;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:var(--mono);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+      <span style="color:var(--text3)">→</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">2nd</span>
+        <input type="number" id="ri-1" min="1" max="365" class="num-item input" style="width:62px;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:var(--mono);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+      <span style="color:var(--text3)">→</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">3rd</span>
+        <input type="number" id="ri-2" min="1" max="365" class="num-item input" style="width:62px;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:var(--mono);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+      <span style="color:var(--text3)">→</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">4th</span>
+        <input type="number" id="ri-3" min="1" max="365" class="num-item input" style="width:62px;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:var(--mono);outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+      <button class="add-btn" onclick="saveRevIntervals()" style="margin-left:4px">Apply</button>
+      <button class="today-btn" onclick="resetRevIntervals()" style="font-size:11px">Reset to default</button>
+    </div>
+    <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:10px">After each revision, the next reminder will fire at the next interval. Must be in ascending order — the app auto-corrects if not.</div>
+  </div>
   <div class="rev-filter" id="rev-filter"></div>
   <div id="rev-content"></div>
 </div>
@@ -1116,17 +1143,30 @@ function renderMistakeList(){
 function renderMistakes(){renderMistakeFilter();renderMistakeList();}
 
 /* ===== SPACED REVISION ===== */
-const REV_INTERVALS=[1,3,7,15];
+function getRevIntervals(){
+  const saved=ld('rev_intervals',null);
+  if(saved&&Array.isArray(saved)&&saved.length===4) return saved.map(Number);
+  return [1,3,7,15];
+}
+function saveRevIntervals(){
+  const vals=['ri-0','ri-1','ri-2','ri-3'].map(id=>Math.max(1,parseInt(document.getElementById(id).value)||1));
+  // enforce ascending order
+  for(let i=1;i<vals.length;i++) if(vals[i]<=vals[i-1]) vals[i]=vals[i-1]+1;
+  ['ri-0','ri-1','ri-2','ri-3'].forEach((id,i)=>{ document.getElementById(id).value=vals[i]; });
+  sv('rev_intervals',vals);
+  renderRevision();
+}
 let revFilterMode='due';
 
 function revStatus(lastDate){
   if(!lastDate) return{label:'Not started',cls:'rev-none',priority:3};
+  const intervals=getRevIntervals();
   const last=new Date(lastDate+'T00:00:00');
   const today=new Date(); today.setHours(0,0,0,0);
   const diff=Math.round((today-last)/86400000);
   if(diff===0) return{label:'Revised today',cls:'rev-ok',priority:4};
-  let next=REV_INTERVALS[REV_INTERVALS.length-1];
-  for(let i=0;i<REV_INTERVALS.length;i++){if(diff<REV_INTERVALS[i]){next=REV_INTERVALS[i];break;}}
+  let next=intervals[intervals.length-1];
+  for(let i=0;i<intervals.length;i++){if(diff<intervals[i]){next=intervals[i];break;}}
   const left=next-diff;
   if(left<=0){
     if(diff>next+7) return{label:`Overdue ${diff}d ago`,cls:'rev-overdue',priority:0};
@@ -1139,8 +1179,15 @@ function markRevised(sub,chName){
   sv(k,dateKey(new Date()));
   renderRevision();
 }
+function resetRevIntervals(){
+  sv('rev_intervals',[1,3,7,15]);
+  ['ri-0','ri-1','ri-2','ri-3'].forEach((id,i)=>{ document.getElementById(id).value=[1,3,7,15][i]; });
+  renderRevision();
+}
 function setRevFilter(f){revFilterMode=f;renderRevision();}
 function renderRevision(){
+  const iv=getRevIntervals();
+  ['ri-0','ri-1','ri-2','ri-3'].forEach((id,i)=>{ document.getElementById(id).value=iv[i]; });
   document.getElementById('rev-filter').innerHTML=['all','due','overdue'].map(f=>
     `<button class="ml-filter-btn${revFilterMode===f?' active':''}" onclick="setRevFilter('${f}')">${f==='all'?'All Chapters':f==='due'?'Due / Overdue':'Overdue Only'}</button>`
   ).join('');
