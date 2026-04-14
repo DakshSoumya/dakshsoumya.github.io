@@ -830,28 +830,30 @@ function renderCombinedSubject(key,sub11,sub12){
   CHAPTERS[sub12].forEach((ch,i)=>chIndexMap12[ch.name]=i);
 
   const render11=GROUPS[sub11].map((grp,gi)=>{
+    const groupKey=`${key}-${sub11}`;
     const grpChs=grp.chapters.map(name=>CHAPTERS[sub11].find(c=>c.name===name)).filter(Boolean);
-    const cards=grpChs.map(ch=>renderChapterCard(sub11,ch,chIndexMap11[ch.name])).join('');
+    const cards=grpChs.map(ch=>renderChapterCard(sub11,ch,chIndexMap11[ch.name],groupKey)).join('');
     return `<div class="grp-wrap">
-      <div class="grp-header" onclick="toggleGrp('${sub11}',${gi})">
+      <div class="grp-header" onclick="toggleGrp('${groupKey}',${gi})">
         <span class="grp-label">${grp.name}</span>
         <span class="grp-pill">${grpChs.length} chapters</span>
-        <span class="grp-chev open" id="gchev-${sub11}-${gi}">&#9654;</span>
+        <span class="grp-chev open" id="gchev-${groupKey}-${gi}">&#9654;</span>
       </div>
-      <div class="grp-body open" id="gbody-${sub11}-${gi}">${cards}</div>
+      <div class="grp-body open" id="gbody-${groupKey}-${gi}">${cards}</div>
     </div>`;
   }).join('');
 
   const render12=GROUPS[sub12].map((grp,gi)=>{
+    const groupKey=`${key}-${sub12}`;
     const grpChs=grp.chapters.map(name=>CHAPTERS[sub12].find(c=>c.name===name)).filter(Boolean);
-    const cards=grpChs.map(ch=>renderChapterCard(sub12,ch,chIndexMap12[ch.name])).join('');
+    const cards=grpChs.map(ch=>renderChapterCard(sub12,ch,chIndexMap12[ch.name],groupKey)).join('');
     return `<div class="grp-wrap">
-      <div class="grp-header" onclick="toggleGrp('${sub12}',${gi})">
+      <div class="grp-header" onclick="toggleGrp('${groupKey}',${gi})">
         <span class="grp-label">${grp.name}</span>
         <span class="grp-pill">${grpChs.length} chapters</span>
-        <span class="grp-chev open" id="gchev-${sub12}-${gi}">&#9654;</span>
+        <span class="grp-chev open" id="gchev-${groupKey}-${gi}">&#9654;</span>
       </div>
-      <div class="grp-body open" id="gbody-${sub12}-${gi}">${cards}</div>
+      <div class="grp-body open" id="gbody-${groupKey}-${gi}">${cards}</div>
     </div>`;
   }).join('');
 
@@ -861,19 +863,19 @@ function renderCombinedSubject(key,sub11,sub12){
 
 function sid(s){ return s.replace(/[^a-zA-Z0-9]/g,'_'); }
 
-function toggleCh(sub,idx){
-  document.getElementById(`cb-${sub}-${idx}`).classList.toggle('open');
-  document.getElementById(`cv-${sub}-${idx}`).classList.toggle('open');
+function toggleCh(viewKey,idx){
+  document.getElementById(`cb-${viewKey}-${idx}`).classList.toggle('open');
+  document.getElementById(`cv-${viewKey}-${idx}`).classList.toggle('open');
 }
 
 const SUB_TO_COMBINED={phy11:'physics',phy12:'physics',chem11:'chemistry',chem12:'chemistry',math11:'maths',math12:'maths'};
 const COMBINED_PAIRS={physics:['phy11','phy12'],chemistry:['chem11','chem12'],maths:['math11','math12']};
 
-function updateChUI(sub,ch,idx){
+function updateChUI(sub,ch,idx,viewKey=sub){
   const p=chPct(sub,ch);
-  const fill=document.getElementById(`cf-${sub}-${idx}`);
-  const pct=document.getElementById(`cp-${sub}-${idx}`);
-  const badge=document.getElementById(`cbg-${sub}-${idx}`);
+  const fill=document.getElementById(`cf-${viewKey}-${idx}`);
+  const pct=document.getElementById(`cp-${viewKey}-${idx}`);
+  const badge=document.getElementById(`cbg-${viewKey}-${idx}`);
   if(fill) fill.style.width=p+'%';
   if(pct) pct.textContent=p+'%';
   if(badge){
@@ -897,37 +899,37 @@ function updateChUI(sub,ch,idx){
   updateSidebar();
 }
 
-function renderChapterCard(sub,ch,idx){
+function renderChapterCard(sub,ch,idx,viewKey=sub){
   const p=chPct(sub,ch.name);
   let bc='bn',bl='Not started';
   if(p===100){bc='bd';bl='Done';}else if(p>0){bc='bp';bl='In progress';}
   const topicsHTML=ch.topics.map(t=>{
-    const tid=`tk-${sub}-${idx}-${sid(t)}`;
+    const tid=`tk-${viewKey}-${idx}-${sid(t)}`;
     const chk=getF(sub,ch.name,'topic_'+t,false);
     const esc=ch.name.replace(/'/g,"\\'").replace(/\n/g,'');
     const tesc=t.replace(/'/g,"\\'");
-    return `<div class="chk-item"><input type="checkbox" id="${tid}" ${chk?'checked':''} onchange="setF('${sub}','${esc}','topic_${tesc}',this.checked);updateChUI('${sub}','${esc}',${idx})"><label for="${tid}">${t}</label></div>`;
+    return `<div class="chk-item"><input type="checkbox" id="${tid}" ${chk?'checked':''} onchange="setF('${sub}','${esc}','topic_${tesc}',this.checked);updateChUI('${sub}','${esc}',${idx},'${viewKey}')"><label for="${tid}">${t}</label></div>`;
   }).join('');
   const ff=[['notes_done','CW notes done'],['hw_done','HW / DPPs done'],['mains_pyq','Mains PYQs done'],['adv_pyq','Advanced PYQs done'],['extra_book','Extra book done']];
   const esc=ch.name.replace(/'/g,"\\'");
   const checksHTML=ff.map(([f,lbl])=>{
-    const fid=`fk-${sub}-${idx}-${f}`;
+    const fid=`fk-${viewKey}-${idx}-${f}`;
     const chk=getF(sub,ch.name,f,false);
-    return `<div class="chk-item"><input type="checkbox" id="${fid}" ${chk?'checked':''} onchange="setF('${sub}','${esc}','${f}',this.checked);updateChUI('${sub}','${esc}',${idx})"><label for="${fid}">${lbl}</label></div>`;
+    return `<div class="chk-item"><input type="checkbox" id="${fid}" ${chk?'checked':''} onchange="setF('${sub}','${esc}','${f}',this.checked);updateChUI('${sub}','${esc}',${idx},'${viewKey}')"><label for="${fid}">${lbl}</label></div>`;
   }).join('');
   const rev=getF(sub,ch.name,'revisions',0);
   const mis=getF(sub,ch.name,'mistakes',0);
   const dbt=getF(sub,ch.name,'doubts','')||'';
   return `<div class="chapter-card">
-    <div class="ch-header" onclick="toggleCh('${sub}',${idx})">
+    <div class="ch-header" onclick="toggleCh('${viewKey}',${idx})">
       <span class="ch-num">${String(idx+1).padStart(2,'0')}</span>
       <span class="ch-name">${ch.name}</span>
-      <span class="ch-badge ${bc}" id="cbg-${sub}-${idx}">${bl}</span>
-      <div class="ch-pbar"><div class="ch-pfill" id="cf-${sub}-${idx}" style="width:${p}%"></div></div>
-      <span class="ch-pct" id="cp-${sub}-${idx}">${p}%</span>
-      <span class="ch-chev" id="cv-${sub}-${idx}">&#9654;</span>
+      <span class="ch-badge ${bc}" id="cbg-${viewKey}-${idx}">${bl}</span>
+      <div class="ch-pbar"><div class="ch-pfill" id="cf-${viewKey}-${idx}" style="width:${p}%"></div></div>
+      <span class="ch-pct" id="cp-${viewKey}-${idx}">${p}%</span>
+      <span class="ch-chev" id="cv-${viewKey}-${idx}">&#9654;</span>
     </div>
-    <div class="ch-body" id="cb-${sub}-${idx}">
+    <div class="ch-body" id="cb-${viewKey}-${idx}">
       <div class="ch-grid">
         <div><div class="slbl">Subtopics</div>${topicsHTML}</div>
         <div>
@@ -943,9 +945,9 @@ function renderChapterCard(sub,ch,idx){
   </div>`;
 }
 
-function toggleGrp(sub,gi){
-  const chev=document.getElementById(`gchev-${sub}-${gi}`);
-  const body=document.getElementById(`gbody-${sub}-${gi}`);
+function toggleGrp(viewKey,gi){
+  const chev=document.getElementById(`gchev-${viewKey}-${gi}`);
+  const body=document.getElementById(`gbody-${viewKey}-${gi}`);
   chev.classList.toggle('open');
   body.classList.toggle('open');
 }
@@ -961,7 +963,7 @@ function renderChapters(sub){
     const grpChapters=grp.chapters.map(name=>allChapters.find(c=>c.name===name)).filter(Boolean);
     const cardsHTML=grpChapters.map(ch=>{
       const idx=chIndexMap[ch.name];
-      return renderChapterCard(sub,ch,idx);
+      return renderChapterCard(sub,ch,idx,sub);
     }).join('');
     return `<div class="grp-wrap">
       <div class="grp-header" onclick="toggleGrp('${sub}',${gi})">
