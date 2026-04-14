@@ -105,6 +105,9 @@ textarea.dbox:focus{border-color:var(--accent);outline:none}
 .att-checks{display:flex;gap:10px;align-items:center}
 .att-lbl{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:5px;cursor:pointer}
 .att-lbl input{accent-color:var(--accent);cursor:pointer}
+.class-row-controls{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:-4px 0 10px}
+.class-row-controls .today-btn{padding:4px 10px;font-size:11px;line-height:1.2}
+.class-row-count{font-size:11px;color:var(--text3);font-family:var(--mono);min-width:72px;text-align:center}
 
 /* STUDY WORK */
 .sw-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -366,6 +369,11 @@ select.field-input{cursor:pointer}
   <!-- CLASS TRACKER -->
   <div class="dcard">
     <div class="dcard-title"><span></span>Class Tracker</div>
+    <div class="class-row-controls">
+      <button class="today-btn" onclick="decreaseClassRows()">− Class</button>
+      <div class="class-row-count" id="class-row-count">0 classes</div>
+      <button class="today-btn" onclick="increaseClassRows()">+ Class</button>
+    </div>
     <table class="tracker-table">
       <thead><tr>
         <th>Subject</th><th>Topic</th>
@@ -1162,8 +1170,17 @@ function formatDate(d){
 function changeDay(n){ diaryDate=new Date(diaryDate.getTime()+n*86400000); renderDiary(); }
 function goToday(){ diaryDate=new Date(); diaryDate.setHours(0,0,0,0); renderDiary(); }
 
+function defaultClassRows(count=4){
+  return Array.from({length:count},()=>({sub:'',topic:''}));
+}
+
 function renderClassRows(){
-  const rows=getD('class-rows',[{sub:'',topic:''},{sub:'',topic:''},{sub:'',topic:''},{sub:'',topic:''}]);
+  const rows=getD('class-rows',defaultClassRows());
+  if(!rows.length){
+    rows.push({sub:'',topic:''});
+    setD('class-rows',rows);
+  }
+  document.getElementById('class-row-count').textContent=`${rows.length} class${rows.length===1?'':'es'}`;
   document.getElementById('class-rows').innerHTML=rows.map((r,i)=>`
     <tr>
       <td><input class="tracker-input" type="text" value="${r.sub||''}" placeholder="e.g. Physics" onchange="updateClassRow(${i},'sub',this.value)"></td>
@@ -1172,8 +1189,23 @@ function renderClassRows(){
   `).join('');
 }
 
+function increaseClassRows(){
+  const rows=getD('class-rows',defaultClassRows());
+  rows.push({sub:'',topic:''});
+  setD('class-rows',rows);
+  renderClassRows();
+}
+
+function decreaseClassRows(){
+  const rows=getD('class-rows',defaultClassRows());
+  if(rows.length<=1) return;
+  rows.pop();
+  setD('class-rows',rows);
+  renderClassRows();
+}
+
 function updateClassRow(i,field,val){
-  const rows=getD('class-rows',[{},{},{},{}]);
+  const rows=getD('class-rows',defaultClassRows());
   while(rows.length<=i) rows.push({});
   rows[i][field]=val;
   setD('class-rows',rows);
