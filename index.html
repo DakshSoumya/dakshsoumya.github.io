@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JEE Tracker — Base PU</title>
+<title>JEE Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -258,6 +258,12 @@ select.field-input{cursor:pointer}
 .auth-tab{flex:1;padding:8px 12px;border-radius:7px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer}
 .auth-tab.active{border-color:var(--accent);color:var(--accent);background:rgba(200,245,66,.08)}
 .auth-fields{display:flex;flex-direction:column;gap:10px}
+.auth-pass-wrap{display:flex;align-items:center;gap:8px}
+.auth-pass-wrap .field-input{flex:1}
+.pass-toggle{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:7px;background:var(--surface2);color:var(--text2);cursor:pointer;transition:all .15s}
+.pass-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.pass-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pass-toggle svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .auth-msg{margin-top:12px;min-height:18px;font-size:12px;font-family:var(--mono)}
 .auth-msg.ok{color:var(--green)}
 .auth-msg.err{color:var(--red)}
@@ -280,7 +286,12 @@ select.field-input{cursor:pointer}
     </div>
     <div class="auth-fields">
       <input class="field-input" id="auth-username" type="text" maxlength="24" placeholder="Unique username">
-      <input class="field-input" id="auth-password" type="password" maxlength="72" placeholder="Password">
+      <div class="auth-pass-wrap">
+        <input class="field-input" id="auth-password" type="password" maxlength="72" placeholder="Password">
+        <button class="pass-toggle" id="pass-toggle" type="button" onclick="togglePasswordVisibility()" aria-label="Show password" title="View password">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.8-6 10-6 10 6 10 6-3.8 6-10 6-10-6-10-6Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        </button>
+      </div>
       <button class="add-btn" onclick="submitAuth()" id="auth-submit">Login</button>
     </div>
     <div class="auth-msg" id="auth-msg"></div>
@@ -292,7 +303,7 @@ select.field-input{cursor:pointer}
     <img src="logo.png" alt="logo" class="logo-img">
     <div class="logo-text">
       <div class="logo-title">JEE Tracker</div>
-      <div class="logo-sub">Base PU · Class 11 & 12</div>
+      <div class="logo-sub">Class 11 & 12</div>
     </div>
   </div>
   <div class="account-box">
@@ -804,7 +815,27 @@ function setAuthMode(mode){
   document.getElementById('tab-login').classList.toggle('active',mode==='login');
   document.getElementById('tab-register').classList.toggle('active',mode==='register');
   document.getElementById('auth-submit').textContent=mode==='login'?'Login':'Create Account';
+  const passInput=document.getElementById('auth-password');
+  if(passInput){
+    passInput.type='password';
+    updatePasswordToggle(false);
+  }
   setAuthMsg('');
+}
+
+function updatePasswordToggle(isVisible){
+  const toggle=document.getElementById('pass-toggle');
+  if(!toggle) return;
+  toggle.setAttribute('aria-label',isVisible?'Hide password':'Show password');
+  toggle.setAttribute('title',isVisible?'Hide password':'View password');
+}
+
+function togglePasswordVisibility(){
+  const passInput=document.getElementById('auth-password');
+  if(!passInput) return;
+  const isVisible=passInput.type==='text';
+  passInput.type=isVisible?'password':'text';
+  updatePasswordToggle(!isVisible);
 }
 function setAuthMsg(msg,isErr=false){
   const el=document.getElementById('auth-msg');
@@ -841,7 +872,12 @@ function submitAuth(){
 function logout(){
   localStorage.removeItem(SESSION_KEY);
   currentUser=null;
-  document.getElementById('auth-password').value='';
+  const passInput=document.getElementById('auth-password');
+  if(passInput){
+    passInput.value='';
+    passInput.type='password';
+  }
+  updatePasswordToggle(false);
   document.getElementById('auth-gate').style.display='flex';
 }
 function restoreSession(){
