@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JEE Tracker — Base PU</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0f0f0f;--surface:#181818;--surface2:#212121;--surface3:#2a2a2a;
+  --border:#2a2a2a;--border2:#383838;--text:#f0f0f0;--text2:#999;--text3:#555;
+  --accent:#c8f542;--blue:#4a9eff;--orange:#ff8c42;--red:#ff5252;
+  --green:#4caf7d;--purple:#b47fff;--yellow:#ffd166;
+  --mono:'DM Mono',monospace;--sans:'Syne',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.layout{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.logo{padding:22px 20px 16px;border-bottom:1px solid var(--border)}
+.logo-title{font-size:16px;font-weight:700;color:var(--accent);letter-spacing:-0.5px}
+.logo-sub{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:3px}
+.nav-sec{padding:14px 0 6px}
+.nav-lbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;padding:0 20px;margin-bottom:6px;font-family:var(--mono)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;border-left:2px solid transparent;transition:all .15s;user-select:none}
+.nav-item:hover{color:var(--text);background:var(--surface2)}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(200,245,66,.05)}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);flex-shrink:0}
+.nav-item.active .nav-dot{background:var(--accent)}
+.nav-count{margin-left:auto;font-size:10px;font-family:var(--mono);background:var(--surface2);padding:1px 6px;border-radius:99px;color:var(--text3)}
+.nav-sub{padding-left:36px;font-size:12px;color:var(--text3)}
+.nav-sub.active{color:var(--accent)}
+.sidebar-bottom{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border)}
+.overall-pct{font-size:28px;font-weight:700;color:var(--accent);font-family:var(--mono)}
+.overall-lbl{font-size:11px;color:var(--text3);margin-top:2px}
+.overall-bar{height:3px;background:var(--border2);border-radius:2px;margin-top:8px;overflow:hidden}
+.overall-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s}
+.main{overflow-y:auto}
+.page{display:none;padding:32px 36px}
+.page.active{display:block}
+.page-title{font-size:24px;font-weight:700;color:var(--text);margin-bottom:4px}
+.page-sub{font-size:12px;color:var(--text3);font-family:var(--mono);margin-bottom:24px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px}
+.stat-num{font-size:24px;font-weight:700;font-family:var(--mono)}
+.stat-lbl{font-size:10px;color:var(--text3);margin-top:4px;text-transform:uppercase;letter-spacing:.05em}
+.year-tabs{display:flex;gap:6px;margin-bottom:18px}
+.year-tab{padding:7px 18px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-size:13px;font-weight:500;font-family:var(--sans);transition:all .15s}
+.year-tab:hover{border-color:var(--border2);color:var(--text)}
+.year-tab.active{background:var(--accent);color:#0f0f0f;border-color:var(--accent);font-weight:600}
+.chapter-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;transition:border-color .15s}
+.chapter-card:hover{border-color:var(--border2)}
+.ch-header{display:flex;align-items:center;gap:10px;padding:13px 16px;cursor:pointer}
+.ch-num{font-size:11px;font-family:var(--mono);color:var(--text3);min-width:22px}
+.ch-name{font-size:14px;font-weight:500;flex:1}
+.ch-badge{font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:99px;font-weight:500}
+.bd{background:rgba(76,175,125,.15);color:var(--green)}
+.bp{background:rgba(255,209,102,.15);color:var(--yellow)}
+.bn{background:var(--surface2);color:var(--text3)}
+.ch-pbar{width:70px;height:3px;background:var(--border2);border-radius:2px;overflow:hidden}
+.ch-pfill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
+.ch-pct{font-size:11px;font-family:var(--mono);color:var(--text3);min-width:30px;text-align:right}
+.ch-chev{font-size:10px;color:var(--text3);transition:transform .2s}
+.ch-chev.open{transform:rotate(90deg)}
+.ch-body{display:none;padding:4px 16px 16px;border-top:1px solid var(--border)}
+.ch-body.open{display:block}
+.ch-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:12px}
+.slbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);margin:12px 0 8px}
+.chk-item{display:flex;align-items:center;gap:8px;padding:3px 0;cursor:pointer}
+.chk-item label{font-size:13px;color:var(--text2);cursor:pointer;flex:1;transition:color .1s}
+.chk-item input:checked+label{color:var(--text)}
+.chk-item input[type=checkbox]{width:13px;height:13px;accent-color:var(--accent);cursor:pointer}
+.num-item{display:flex;align-items:center;gap:8px;padding:3px 0}
+.num-item label{font-size:13px;color:var(--text2);flex:1}
+.num-item input{width:58px;padding:5px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:var(--mono)}
+.num-item input:focus{border-color:var(--accent);outline:none}
+textarea.dbox{width:100%;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:var(--sans);resize:vertical;min-height:65px;transition:border-color .15s}
+textarea.dbox:focus{border-color:var(--accent);outline:none}
+
+/* DIARY */
+.diary-top{display:flex;align-items:center;gap:10px;margin-bottom:22px;flex-wrap:wrap}
+.date-nav{display:flex;align-items:center;gap:8px}
+.dbtn{width:32px;height:32px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:var(--sans)}
+.dbtn:hover{border-color:var(--border2);background:var(--surface2)}
+.ddate{font-size:14px;font-weight:500;min-width:180px;text-align:center;font-family:var(--mono);color:var(--text)}
+.today-btn{padding:7px 14px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-size:12px;font-family:var(--mono);transition:all .15s}
+.today-btn:hover{border-color:var(--accent);color:var(--accent)}
+.dcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:14px}
+.dcard-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.dcard-title span{width:3px;height:14px;border-radius:2px;background:var(--accent);display:inline-block}
+
+/* CLASS TRACKER TABLE */
+.tracker-table{width:100%;border-collapse:collapse}
+.tracker-table th{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-family:var(--mono);padding:0 8px 8px;text-align:left}
+.tracker-table td{padding:6px 8px;border-bottom:1px solid var(--border)}
+.tracker-table tr:last-child td{border-bottom:none}
+.tracker-input{background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--text);font-size:13px;font-family:var(--sans);width:100%;padding:2px 0;outline:none}
+.tracker-input:focus{border-bottom-color:var(--accent)}
+.att-checks{display:flex;gap:10px;align-items:center}
+.att-lbl{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:5px;cursor:pointer}
+.att-lbl input{accent-color:var(--accent);cursor:pointer}
+
+/* STUDY WORK */
+.sw-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sw-item{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:border-color .15s}
+.sw-item:hover{border-color:var(--border2)}
+.sw-item.checked{border-color:var(--accent);background:rgba(200,245,66,.05)}
+.sw-item label{font-size:13px;color:var(--text2);cursor:pointer}
+.sw-item.checked label{color:var(--accent)}
+.sw-item input{accent-color:var(--accent);cursor:pointer;width:13px;height:13px}
+
+/* HOW WAS */
+.mood-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.mood-btn{padding:6px 14px;border-radius:99px;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:13px;font-family:var(--sans);color:var(--text2);transition:all .15s}
+.mood-btn.sel{border-color:var(--accent);color:var(--accent);background:rgba(200,245,66,.08)}
+
+/* TESTS */
+.test-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px}
+.field-lbl{font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.field-input{width:100%;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;font-family:var(--sans)}
+.field-input:focus{border-color:var(--accent);outline:none}
+textarea.field-input{resize:vertical;min-height:48px}
+
+/* COMMITMENTS */
+.commit-add{display:flex;gap:8px;margin-top:8px}
+.commit-inp{flex:1;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;font-family:var(--sans)}
+.commit-inp:focus{border-color:var(--accent);outline:none}
+.add-btn{padding:9px 16px;background:var(--accent);color:#0f0f0f;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;font-family:var(--sans);transition:opacity .15s;white-space:nowrap}
+.add-btn:hover{opacity:.85}
+.commit-list{margin-top:10px;display:flex;flex-direction:column;gap:5px}
+.commit-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)}
+.commit-item input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px;cursor:pointer}
+.commit-item label{flex:1;font-size:13px;color:var(--text2);cursor:pointer}
+.commit-item input:checked+label{text-decoration:line-through;color:var(--text3)}
+.del-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0 4px;transition:color .15s;line-height:1}
+.del-btn:hover{color:var(--red)}
+
+/* HISTORY */
+.hist-title{font-size:11px;font-weight:600;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;margin:24px 0 12px}
+.hist-item{padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px}
+.hist-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.hist-date{font-size:11px;font-family:var(--mono);color:var(--text3)}
+.hist-mood{font-size:11px;padding:2px 8px;border-radius:99px;border:1px solid var(--border2);color:var(--text2)}
+.hist-body{font-size:13px;color:var(--text2);line-height:1.5}
+.hist-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.hist-tag{font-size:11px;font-family:var(--mono);padding:2px 8px;border-radius:99px;background:var(--surface2);color:var(--text3)}
+.hist-tag.done{background:rgba(76,175,125,.1);color:var(--green)}
+.hist-tag.undone{background:rgba(255,82,82,.07);color:var(--red)}
+.hist-test{margin-top:8px;font-size:12px;font-family:var(--mono);color:var(--text3)}
+
+.save-ind{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px;font-family:var(--mono);color:var(--text3);opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.save-ind.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-title">JEE Tracker</div>
+    <div class="logo-sub">Base PU · Class 11 & 12</div>
+  </div>
+  <div class="nav-sec">
+    <div class="nav-lbl">Daily</div>
+    <div class="nav-item active" onclick="showPage('diary')"><span class="nav-dot"></span>Class Tracker</div>
+  </div>
+  <div class="nav-sec">
+    <div class="nav-lbl">Class 11</div>
+    <div class="nav-item" onclick="showPage('phy11')"><span class="nav-dot"></span>Physics<span class="nav-count" id="nc-phy11">0%</span></div>
+    <div class="nav-item" onclick="showPage('chem11')"><span class="nav-dot"></span>Chemistry<span class="nav-count" id="nc-chem11">0%</span></div>
+    <div class="nav-item" onclick="showPage('math11')"><span class="nav-dot"></span>Maths<span class="nav-count" id="nc-math11">0%</span></div>
+  </div>
+  <div class="nav-sec">
+    <div class="nav-lbl">Class 12</div>
+    <div class="nav-item" onclick="showPage('phy12')"><span class="nav-dot"></span>Physics<span class="nav-count" id="nc-phy12">0%</span></div>
+    <div class="nav-item" onclick="showPage('chem12')"><span class="nav-dot"></span>Chemistry<span class="nav-count" id="nc-chem12">0%</span></div>
+    <div class="nav-item" onclick="showPage('math12')"><span class="nav-dot"></span>Maths<span class="nav-count" id="nc-math12">0%</span></div>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="overall-pct" id="overall-pct">0%</div>
+    <div class="overall-lbl">overall progress</div>
+    <div class="overall-bar"><div class="overall-fill" id="overall-fill" style="width:0%"></div></div>
+  </div>
+</aside>
+
+<main class="main">
+
+<!-- DIARY / CLASS TRACKER -->
+<div class="page active" id="page-diary">
+  <div class="page-title">Class Tracker</div>
+  <div class="page-sub">Daily study log · commitments · test scores</div>
+  <div class="diary-top">
+    <div class="date-nav">
+      <button class="dbtn" onclick="changeDay(-1)">&#8592;</button>
+      <div class="ddate" id="diary-date"></div>
+      <button class="dbtn" onclick="changeDay(1)">&#8594;</button>
+    </div>
+    <button class="today-btn" onclick="goToday()">Today</button>
+  </div>
+
+  <!-- CLASS TRACKER -->
+  <div class="dcard">
+    <div class="dcard-title"><span></span>Class Tracker</div>
+    <table class="tracker-table">
+      <thead><tr>
+        <th>Subject</th><th>Topic</th><th>Teacher</th><th>Attended</th>
+      </tr></thead>
+      <tbody id="class-rows"></tbody>
+    </table>
+  </div>
+
+  <!-- TODAY'S STUDY WORK -->
+  <div class="dcard">
+    <div class="dcard-title"><span></span>Today's Study Work</div>
+    <div class="sw-grid" id="sw-grid"></div>
+  </div>
+
+  <!-- HOW WAS YOUR STUDY -->
+  <div class="dcard">
+    <div class="dcard-title"><span></span>How Was Your Study Today?</div>
+    <div class="mood-row" id="mood-row"></div>
+  </div>
+
+  <!-- ANY TESTS -->
+  <div class="dcard">
+    <div class="dcard-title"><span></span>Any Tests?</div>
+    <div style="display:flex;gap:16px;align-items:center;margin-bottom:10px">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text2)">
+        <input type="radio" name="has-test" value="yes" id="test-yes" onchange="toggleTestFields(true)" style="accent-color:var(--accent)"> Yes
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text2)">
+        <input type="radio" name="has-test" value="no" id="test-no" onchange="toggleTestFields(false)" style="accent-color:var(--accent)" checked> No
+      </label>
+    </div>
+    <div id="test-fields" style="display:none">
+      <div class="test-row">
+        <div><div class="field-lbl">Test Name</div><input class="field-input" id="test-name" type="text" placeholder="e.g. Weekly Physics Test" oninput="saveDiaryField('test-name',this.value)"></div>
+        <div><div class="field-lbl">Score</div><input class="field-input" id="test-score" type="text" placeholder="e.g. 85/120" oninput="saveDiaryField('test-score',this.value)"></div>
+        <div><div class="field-lbl">Accuracy</div><input class="field-input" id="test-accuracy" type="text" placeholder="e.g. 72%" oninput="saveDiaryField('test-accuracy',this.value)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MISTAKE + IMPROVEMENT -->
+  <div class="dcard">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div>
+        <div class="field-lbl">1 Mistake I Must Not Repeat</div>
+        <textarea class="field-input" id="diary-mistake" rows="3" placeholder="Write the one mistake..." oninput="saveDiaryField('mistake',this.value)"></textarea>
+      </div>
+      <div>
+        <div class="field-lbl">Today I Improved At</div>
+        <textarea class="field-input" id="diary-improve" rows="3" placeholder="What did you get better at today?" oninput="saveDiaryField('improve',this.value)"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMITMENTS -->
+  <div class="dcard">
+    <div class="dcard-title"><span></span>Commitments</div>
+    <div class="commit-add">
+      <input class="commit-inp" id="commit-inp" type="text" placeholder="Add a commitment e.g. Finish Kinematics DPP..." onkeydown="if(event.key==='Enter')addCommitment()">
+      <button class="add-btn" onclick="addCommitment()">+ Add</button>
+    </div>
+    <div class="commit-list" id="commit-list"></div>
+  </div>
+
+  <!-- NOTES -->
+  <div class="dcard">
+    <div class="dcard-title"><span></span>Notes</div>
+    <textarea class="dbox" id="diary-notes" rows="5" placeholder="Any other notes for the day..." oninput="saveDiaryField('notes',this.value)"></textarea>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="hist-title">Past Entries</div>
+  <div id="hist-list"></div>
+</div>
+
+<!-- SUBJECT PAGES -->
+<div class="page" id="page-phy11">
+  <div class="page-title">Physics — Class 11</div>
+  <div class="page-sub">Resonance Modules · HC Verma · Physics Galaxy Vol 1 & 2</div>
+  <div class="stats-grid" id="stats-phy11"></div>
+  <div id="chs-phy11"></div>
+</div>
+<div class="page" id="page-chem11">
+  <div class="page-title">Chemistry — Class 11</div>
+  <div class="page-sub">Resonance Modules · NCERT</div>
+  <div class="stats-grid" id="stats-chem11"></div>
+  <div id="chs-chem11"></div>
+</div>
+<div class="page" id="page-math11">
+  <div class="page-title">Maths — Class 11</div>
+  <div class="page-sub">Resonance Modules · Black Book · Arihant PYQ</div>
+  <div class="stats-grid" id="stats-math11"></div>
+  <div id="chs-math11"></div>
+</div>
+<div class="page" id="page-phy12">
+  <div class="page-title">Physics — Class 12</div>
+  <div class="page-sub">Resonance Modules · HC Verma · Physics Galaxy Vol 3 & 4</div>
+  <div class="stats-grid" id="stats-phy12"></div>
+  <div id="chs-phy12"></div>
+</div>
+<div class="page" id="page-chem12">
+  <div class="page-title">Chemistry — Class 12</div>
+  <div class="page-sub">Resonance Modules · NCERT · N Awasthi · MS Chauhan · VK Jaiswal</div>
+  <div class="stats-grid" id="stats-chem12"></div>
+  <div id="chs-chem12"></div>
+</div>
+<div class="page" id="page-math12">
+  <div class="page-title">Maths — Class 12</div>
+  <div class="page-sub">Resonance Modules · Black Book · Arihant PYQ</div>
+  <div class="stats-grid" id="stats-math12"></div>
+  <div id="chs-math12"></div>
+</div>
+
+</main>
+</div>
+<div class="save-ind" id="save-ind">saved</div>
+
+<script>
+const CHAPTERS = {
+  phy11:[
+    {name:"Physical World & Measurement",topics:["Units & Dimensions","Significant Figures","Error Analysis"]},
+    {name:"Kinematics",topics:["Motion in 1D","Motion in 2D","Projectile Motion","Relative Motion"]},
+    {name:"Laws of Motion",topics:["Newton's Laws","Friction","Circular Motion","Pseudo Force"]},
+    {name:"Work, Energy & Power",topics:["Work-Energy Theorem","Conservation of Energy","Power","Collisions"]},
+    {name:"Rotational Motion",topics:["Centre of Mass","Torque","Moment of Inertia","Rolling Motion"]},
+    {name:"Gravitation",topics:["Kepler's Laws","Gravitational Potential","Satellites","Escape Velocity"]},
+    {name:"Properties of Matter",topics:["Elasticity","Viscosity","Surface Tension","Bernoulli's Theorem"]},
+    {name:"Thermodynamics",topics:["Laws of Thermodynamics","Carnot Engine","Entropy","Heat Engines"]},
+    {name:"Kinetic Theory of Gases",topics:["KTG Postulates","RMS Speed","Degrees of Freedom","Mean Free Path"]},
+    {name:"Oscillations & Waves",topics:["SHM","Damped Oscillations","Wave Motion","Standing Waves","Doppler Effect"]},
+  ],
+  chem11:[
+    {name:"Basic Concepts of Chemistry",topics:["Mole Concept","Stoichiometry","Limiting Reagent","Empirical Formula"]},
+    {name:"Atomic Structure",topics:["Bohr Model","Quantum Numbers","Electronic Configuration","Orbitals"]},
+    {name:"Classification of Elements",topics:["Periodic Trends","Atomic Radius","Ionisation Energy","Electronegativity"]},
+    {name:"Chemical Bonding",topics:["Ionic Bonding","Covalent Bonding","VSEPR Theory","Hybridisation","MOT"]},
+    {name:"States of Matter",topics:["Gas Laws","Real Gases","Van der Waals","Liquid State"]},
+    {name:"Thermodynamics",topics:["Enthalpy","Hess's Law","Entropy","Gibbs Energy"]},
+    {name:"Equilibrium",topics:["Law of Mass Action","Kp & Kc","Le Chatelier","Ionic Equilibrium","Buffer"]},
+    {name:"Redox Reactions",topics:["Oxidation States","Balancing Redox","Electrochemical Series"]},
+    {name:"Hydrogen & s-Block",topics:["Hydrogen","Alkali Metals","Alkaline Earth Metals"]},
+    {name:"Organic Chemistry Basics",topics:["IUPAC Naming","Isomerism","Inductive Effect","Resonance","Hyperconjugation"]},
+    {name:"Hydrocarbons",topics:["Alkanes","Alkenes","Alkynes","Aromatic Hydrocarbons"]},
+  ],
+  math11:[
+    {name:"Sets, Relations & Functions",topics:["Sets","Relations","Types of Functions","Composition"]},
+    {name:"Trigonometry",topics:["Trigonometric Ratios","Identities","Inverse Trig","Equations"]},
+    {name:"Complex Numbers",topics:["Algebra of Complex Numbers","Modulus & Argument","Polar Form","Roots of Unity"]},
+    {name:"Quadratic Equations",topics:["Nature of Roots","Sum & Product","Common Roots","Inequalities"]},
+    {name:"Permutations & Combinations",topics:["Factorial","Permutations","Combinations","Circular Arrangements"]},
+    {name:"Binomial Theorem",topics:["Binomial Expansion","General Term","Middle Term","Properties"]},
+    {name:"Sequences & Series",topics:["AP","GP","HP","AGP","Special Series"]},
+    {name:"Straight Lines",topics:["Slope","Equations of Lines","Angle Between Lines","Distance Formulae"]},
+    {name:"Conic Sections",topics:["Circle","Parabola","Ellipse","Hyperbola"]},
+    {name:"Limits & Derivatives",topics:["Limits","L'Hopital Rule","Differentiation","Applications"]},
+    {name:"Mathematical Reasoning",topics:["Statements","Connectives","Tautology","Contrapositive"]},
+    {name:"Statistics & Probability",topics:["Mean/Median/Mode","Variance","Probability","Bayes Theorem"]},
+  ],
+  phy12:[
+    {name:"Electric Charges & Fields",topics:["Coulomb's Law","Electric Field","Gauss's Law","Electric Dipole"]},
+    {name:"Electrostatic Potential & Capacitance",topics:["Potential","Equipotential Surfaces","Capacitors","Dielectrics"]},
+    {name:"Current Electricity",topics:["Ohm's Law","Kirchhoff's Laws","Wheatstone Bridge","RC Circuits"]},
+    {name:"Moving Charges & Magnetism",topics:["Biot-Savart Law","Ampere's Law","Cyclotron","Magnetic Force"]},
+    {name:"Magnetism & Matter",topics:["Magnetic Dipole","Earth's Magnetism","Dia/Para/Ferro","Hysteresis"]},
+    {name:"Electromagnetic Induction",topics:["Faraday's Law","Lenz's Law","Self & Mutual Induction","Eddy Currents"]},
+    {name:"Alternating Current",topics:["AC Circuits","LCR Circuits","Resonance","Power Factor","Transformers"]},
+    {name:"Electromagnetic Waves",topics:["Maxwell's Equations","EM Spectrum","Properties of EM Waves"]},
+    {name:"Ray Optics",topics:["Reflection","Refraction","TIR","Lenses","Optical Instruments"]},
+    {name:"Wave Optics",topics:["Huygen's Principle","Interference","Diffraction","Polarisation"]},
+    {name:"Dual Nature of Radiation",topics:["Photoelectric Effect","de Broglie Waves","Davisson-Germer"]},
+    {name:"Atoms & Nuclei",topics:["Bohr Model","Hydrogen Spectrum","Radioactivity","Nuclear Reactions"]},
+    {name:"Semiconductor Electronics",topics:["p-n Junction","Diodes","Transistors","Logic Gates"]},
+  ],
+  chem12:[
+    {name:"Solid State",topics:["Crystal Structures","Unit Cell","Defects","Properties"]},
+    {name:"Solutions",topics:["Types of Solutions","Colligative Properties","Van't Hoff Factor","Raoult's Law"]},
+    {name:"Electrochemistry",topics:["Electrochemical Cells","Nernst Equation","Conductance","Electrolysis"]},
+    {name:"Chemical Kinetics",topics:["Rate of Reaction","Order & Molecularity","Integrated Rate Laws","Arrhenius"]},
+    {name:"Surface Chemistry",topics:["Adsorption","Catalysis","Colloids","Emulsions"]},
+    {name:"p-Block Elements",topics:["Group 15","Group 16","Group 17","Group 18","Important Compounds"]},
+    {name:"d & f Block Elements",topics:["Transition Metals","Properties","Lanthanoids","Actinoids"]},
+    {name:"Coordination Compounds",topics:["Werner's Theory","IUPAC Naming","Isomerism","Bonding","Applications"]},
+    {name:"Haloalkanes & Haloarenes",topics:["Nomenclature","Reactions","SN1 & SN2","Elimination"]},
+    {name:"Alcohols, Phenols & Ethers",topics:["Preparation","Chemical Properties","Acidic Character"]},
+    {name:"Aldehydes, Ketones & Acids",topics:["Nucleophilic Addition","Aldol Condensation","Cannizzaro","Acidity"]},
+    {name:"Amines",topics:["Classification","Preparation","Chemical Properties","Diazonium Salts"]},
+    {name:"Biomolecules & Polymers",topics:["Carbohydrates","Proteins","Nucleic Acids","Polymers"]},
+  ],
+  math12:[
+    {name:"Relations & Functions",topics:["Types of Relations","Types of Functions","Composition","Inverse"]},
+    {name:"Inverse Trigonometric Functions",topics:["Domain & Range","Principal Values","Properties","Equations"]},
+    {name:"Matrices",topics:["Types of Matrices","Operations","Transpose","Symmetric & Skew"]},
+    {name:"Determinants",topics:["Properties","Cofactors","Adjoint","Inverse","Cramer's Rule"]},
+    {name:"Continuity & Differentiability",topics:["Continuity","Differentiability","Chain Rule","Implicit","Logarithmic"]},
+    {name:"Applications of Derivatives",topics:["Rate of Change","Tangents & Normals","Maxima & Minima","Rolle's & MVT"]},
+    {name:"Integrals",topics:["Standard Integrals","Substitution","By Parts","Partial Fractions","Definite Integrals"]},
+    {name:"Applications of Integrals",topics:["Area Under Curves","Area Between Curves"]},
+    {name:"Differential Equations",topics:["Order & Degree","Variable Separable","Homogeneous","Linear DE"]},
+    {name:"Vector Algebra",topics:["Types of Vectors","Dot Product","Cross Product","Scalar Triple Product"]},
+    {name:"3D Geometry",topics:["Direction Cosines","Equation of Line","Equation of Plane","Angle & Distance"]},
+    {name:"Linear Programming",topics:["Formulation","Graphical Method","Corner Point Method"]},
+    {name:"Probability",topics:["Conditional Probability","Bayes Theorem","Random Variables","Binomial Distribution"]},
+  ]
+};
+
+const SUBJECTS = Object.keys(CHAPTERS);
+const STUDY_WORK = ['Theory Revised','DPP Solved','PYQs Practiced','Practice Sheet Attempted','Formula Revised','Extra Book Solved'];
+const MOODS = ['Excellent','Good','Okay','Tired','Rough'];
+
+let diaryDate = new Date(); diaryDate.setHours(0,0,0,0);
+
+function ld(k,d){ try{ const v=localStorage.getItem('jee2_'+k); return v!==null?JSON.parse(v):d; }catch(e){ return d; } }
+function sv(k,v){ try{ localStorage.setItem('jee2_'+k,JSON.stringify(v)); }catch(e){} showSaved(); }
+let saveTimer;
+function showSaved(){ const el=document.getElementById('save-ind'); el.classList.add('show'); clearTimeout(saveTimer); saveTimer=setTimeout(()=>el.classList.remove('show'),1500); }
+
+function dateKey(d){ return d.toISOString().slice(0,10); }
+function dkey(field){ return 'diary_'+dateKey(diaryDate)+'_'+field; }
+function getD(f,def){ return ld(dkey(f),def); }
+function setD(f,v){ sv(dkey(f),v); }
+
+function saveDiaryField(f,v){ setD(f,v); }
+
+function getF(sub,ch,field,def){ return ld(`${sub}_${ch}_${field}`,def); }
+function setF(sub,ch,field,val){ sv(`${sub}_${ch}_${field}`,val); }
+
+function chPct(sub,ch){
+  const d=CHAPTERS[sub].find(c=>c.name===ch);
+  const td=d.topics.filter(t=>getF(sub,ch,'topic_'+t,false)).length;
+  const ff=['notes_done','hw_done','mains_pyq','adv_pyq','extra_book'];
+  const fd=ff.filter(f=>getF(sub,ch,f,false)).length;
+  return Math.round((td+fd)/(d.topics.length+ff.length)*100);
+}
+
+function subStats(sub){
+  const chs=CHAPTERS[sub];
+  let done=0,mistakes=0,revisions=0,doubts=0;
+  chs.forEach(ch=>{
+    if(chPct(sub,ch.name)===100) done++;
+    mistakes+=parseInt(getF(sub,ch.name,'mistakes',0))||0;
+    revisions+=parseInt(getF(sub,ch.name,'revisions',0))||0;
+    if((getF(sub,ch.name,'doubts','')||'').trim().length>0) doubts++;
+  });
+  return {done,total:chs.length,mistakes,revisions,doubts};
+}
+
+function overallPct(){
+  let sum=0,count=0;
+  SUBJECTS.forEach(sub=>{ CHAPTERS[sub].forEach(ch=>{ sum+=chPct(sub,ch.name); count++; }); });
+  return count>0?Math.round(sum/count):0;
+}
+
+function updateSidebar(){
+  SUBJECTS.forEach(sub=>{
+    const s=subStats(sub);
+    const el=document.getElementById('nc-'+sub);
+    if(el) el.textContent=Math.round(s.done/s.total*100)+'%';
+  });
+  const p=overallPct();
+  document.getElementById('overall-pct').textContent=p+'%';
+  document.getElementById('overall-fill').style.width=p+'%';
+}
+
+function renderStats(sub){
+  const s=subStats(sub);
+  document.getElementById('stats-'+sub).innerHTML=`
+    <div class="stat-card"><div class="stat-num" style="color:var(--accent)">${s.done}/${s.total}</div><div class="stat-lbl">Chapters done</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--blue)">${s.revisions}</div><div class="stat-lbl">Revisions</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--red)">${s.mistakes}</div><div class="stat-lbl">Mistakes</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--purple)">${s.doubts}</div><div class="stat-lbl">With doubts</div></div>
+  `;
+}
+
+function sid(s){ return s.replace(/[^a-zA-Z0-9]/g,'_'); }
+
+function toggleCh(sub,idx){
+  document.getElementById(`cb-${sub}-${idx}`).classList.toggle('open');
+  document.getElementById(`cv-${sub}-${idx}`).classList.toggle('open');
+}
+
+function updateChUI(sub,ch,idx){
+  const p=chPct(sub,ch);
+  const fill=document.getElementById(`cf-${sub}-${idx}`);
+  const pct=document.getElementById(`cp-${sub}-${idx}`);
+  const badge=document.getElementById(`cbg-${sub}-${idx}`);
+  if(fill) fill.style.width=p+'%';
+  if(pct) pct.textContent=p+'%';
+  if(badge){
+    let c='bn',l='Not started';
+    if(p===100){c='bd';l='Done';}else if(p>0){c='bp';l='In progress';}
+    badge.className='ch-badge '+c; badge.textContent=l;
+  }
+  renderStats(sub); updateSidebar();
+}
+
+function renderChapters(sub){
+  const container=document.getElementById('chs-'+sub);
+  container.innerHTML=CHAPTERS[sub].map((ch,idx)=>{
+    const p=chPct(sub,ch.name);
+    let bc='bn',bl='Not started';
+    if(p===100){bc='bd';bl='Done';}else if(p>0){bc='bp';bl='In progress';}
+    const topicsHTML=ch.topics.map(t=>{
+      const tid=`tk-${sub}-${idx}-${sid(t)}`;
+      const chk=getF(sub,ch.name,'topic_'+t,false);
+      const esc=ch.name.replace(/'/g,"\\'").replace(/\n/g,'');
+      const tesc=t.replace(/'/g,"\\'");
+      return `<div class="chk-item"><input type="checkbox" id="${tid}" ${chk?'checked':''} onchange="setF('${sub}','${esc}','topic_${tesc}',this.checked);updateChUI('${sub}','${esc}',${idx})"><label for="${tid}">${t}</label></div>`;
+    }).join('');
+    const ff=[['notes_done','CW notes done'],['hw_done','HW / DPPs done'],['mains_pyq','Mains PYQs done'],['adv_pyq','Advanced PYQs done'],['extra_book','Extra book done']];
+    const esc=ch.name.replace(/'/g,"\\'");
+    const checksHTML=ff.map(([f,lbl])=>{
+      const fid=`fk-${sub}-${idx}-${f}`;
+      const chk=getF(sub,ch.name,f,false);
+      return `<div class="chk-item"><input type="checkbox" id="${fid}" ${chk?'checked':''} onchange="setF('${sub}','${esc}','${f}',this.checked);updateChUI('${sub}','${esc}',${idx})"><label for="${fid}">${lbl}</label></div>`;
+    }).join('');
+    const rev=getF(sub,ch.name,'revisions',0);
+    const mis=getF(sub,ch.name,'mistakes',0);
+    const dbt=getF(sub,ch.name,'doubts','')||'';
+    return `<div class="chapter-card">
+      <div class="ch-header" onclick="toggleCh('${sub}',${idx})">
+        <span class="ch-num">${String(idx+1).padStart(2,'0')}</span>
+        <span class="ch-name">${ch.name}</span>
+        <span class="ch-badge ${bc}" id="cbg-${sub}-${idx}">${bl}</span>
+        <div class="ch-pbar"><div class="ch-pfill" id="cf-${sub}-${idx}" style="width:${p}%"></div></div>
+        <span class="ch-pct" id="cp-${sub}-${idx}">${p}%</span>
+        <span class="ch-chev" id="cv-${sub}-${idx}">&#9654;</span>
+      </div>
+      <div class="ch-body" id="cb-${sub}-${idx}">
+        <div class="ch-grid">
+          <div><div class="slbl">Subtopics</div>${topicsHTML}</div>
+          <div>
+            <div class="slbl">Completion</div>${checksHTML}
+            <div class="slbl" style="margin-top:14px">Tracking</div>
+            <div class="num-item"><label>Revisions done</label><input type="number" min="0" max="50" value="${rev}" onchange="setF('${sub}','${esc}','revisions',parseInt(this.value)||0);renderStats('${sub}');updateSidebar()"></div>
+            <div class="num-item"><label>Mistakes count</label><input type="number" min="0" max="999" value="${mis}" onchange="setF('${sub}','${esc}','mistakes',parseInt(this.value)||0);renderStats('${sub}');updateSidebar()"></div>
+            <div class="slbl" style="margin-top:14px">Doubts</div>
+            <textarea class="dbox" placeholder="Write doubts..." onchange="setF('${sub}','${esc}','doubts',this.value);renderStats('${sub}')">${dbt}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active');
+  });
+  if(id==='diary') renderDiary();
+}
+
+function formatDate(d){
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const today=new Date(); today.setHours(0,0,0,0);
+  const diff=Math.round((d-today)/86400000);
+  let pre='';
+  if(diff===0) pre='Today · ';
+  else if(diff===-1) pre='Yesterday · ';
+  else if(diff===1) pre='Tomorrow · ';
+  return pre+days[d.getDay()]+', '+d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear();
+}
+
+function changeDay(n){ diaryDate=new Date(diaryDate.getTime()+n*86400000); renderDiary(); }
+function goToday(){ diaryDate=new Date(); diaryDate.setHours(0,0,0,0); renderDiary(); }
+
+function renderClassRows(){
+  const rows=getD('class-rows',[{sub:'',topic:'',teacher:'',live:false,recorded:false},{sub:'',topic:'',teacher:'',live:false,recorded:false},{sub:'',topic:'',teacher:'',live:false,recorded:false},{sub:'',topic:'',teacher:'',live:false,recorded:false}]);
+  document.getElementById('class-rows').innerHTML=rows.map((r,i)=>`
+    <tr>
+      <td><input class="tracker-input" type="text" value="${r.sub||''}" placeholder="e.g. Physics" onchange="updateClassRow(${i},'sub',this.value)"></td>
+      <td><input class="tracker-input" type="text" value="${r.topic||''}" placeholder="e.g. Kinematics" onchange="updateClassRow(${i},'topic',this.value)"></td>
+      <td><input class="tracker-input" type="text" value="${r.teacher||''}" placeholder="Teacher name" onchange="updateClassRow(${i},'teacher',this.value)"></td>
+      <td><div class="att-checks">
+        <label class="att-lbl"><input type="checkbox" ${r.live?'checked':''} onchange="updateClassRow(${i},'live',this.checked)" style="accent-color:var(--accent)"> Live</label>
+        <label class="att-lbl"><input type="checkbox" ${r.recorded?'checked':''} onchange="updateClassRow(${i},'recorded',this.checked)" style="accent-color:var(--accent)"> Recorded</label>
+      </div></td>
+    </tr>
+  `).join('');
+}
+
+function updateClassRow(i,field,val){
+  const rows=getD('class-rows',[{},{},{},{}]);
+  while(rows.length<=i) rows.push({});
+  rows[i][field]=val;
+  setD('class-rows',rows);
+}
+
+function renderStudyWork(){
+  const saved=getD('study-work',[]);
+  document.getElementById('sw-grid').innerHTML=STUDY_WORK.map(sw=>{
+    const chk=saved.includes(sw);
+    return `<div class="sw-item${chk?' checked':''}" id="sw-${sid(sw)}" onclick="toggleSW('${sw}')">
+      <input type="checkbox" ${chk?'checked':''} onclick="event.stopPropagation();toggleSW('${sw}')">
+      <label>${sw}</label>
+    </div>`;
+  }).join('');
+}
+
+function toggleSW(sw){
+  let saved=getD('study-work',[]);
+  if(saved.includes(sw)) saved=saved.filter(s=>s!==sw);
+  else saved.push(sw);
+  setD('study-work',saved);
+  renderStudyWork();
+}
+
+function renderMoodRow(){
+  const saved=getD('mood',null);
+  document.getElementById('mood-row').innerHTML=MOODS.map(m=>`
+    <button class="mood-btn${saved===m?' sel':''}" onclick="selectMood('${m}')">${m}</button>
+  `).join('');
+}
+
+function selectMood(m){ setD('mood',m); renderMoodRow(); }
+
+function toggleTestFields(show){
+  document.getElementById('test-fields').style.display=show?'block':'none';
+  setD('has-test',show);
+}
+
+function renderTestFields(){
+  const hasTest=getD('has-test',false);
+  document.getElementById('test-yes').checked=hasTest;
+  document.getElementById('test-no').checked=!hasTest;
+  document.getElementById('test-fields').style.display=hasTest?'block':'none';
+  document.getElementById('test-name').value=getD('test-name','')||'';
+  document.getElementById('test-score').value=getD('test-score','')||'';
+  document.getElementById('test-accuracy').value=getD('test-accuracy','')||'';
+}
+
+function renderCommitments(){
+  const commits=getD('commitments')||[];
+  document.getElementById('commit-list').innerHTML=commits.map((c,i)=>`
+    <div class="commit-item">
+      <input type="checkbox" id="ci-${i}" ${c.done?'checked':''} onchange="toggleCommit(${i})">
+      <label for="ci-${i}">${c.text}</label>
+      <button class="del-btn" onclick="delCommit(${i})">&#x2715;</button>
+    </div>
+  `).join('');
+}
+
+function addCommitment(){
+  const inp=document.getElementById('commit-inp');
+  const text=inp.value.trim();
+  if(!text) return;
+  const commits=getD('commitments')||[];
+  commits.push({text,done:false});
+  setD('commitments',commits);
+  inp.value='';
+  renderCommitments();
+}
+
+function toggleCommit(i){
+  const commits=getD('commitments')||[];
+  commits[i].done=!commits[i].done;
+  setD('commitments',commits);
+  renderCommitments();
+}
+
+function delCommit(i){
+  const commits=getD('commitments')||[];
+  commits.splice(i,1);
+  setD('commitments',commits);
+  renderCommitments();
+}
+
+function renderHistory(){
+  const allKeys=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k&&k.startsWith('jee2_diary_')&&k.endsWith('_mood')) allKeys.push(k.replace('jee2_diary_','').replace('_mood',''));
+  }
+  const cur=dateKey(diaryDate);
+  const past=allKeys.filter(k=>k<cur).sort().reverse().slice(0,10);
+  const container=document.getElementById('hist-list');
+  if(past.length===0){ container.innerHTML='<div style="color:var(--text3);font-size:13px;font-family:var(--mono)">No past entries yet.</div>'; return; }
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  container.innerHTML=past.map(k=>{
+    const mood=ld('jee2_diary_'+k+'_mood',null);
+    const mistake=ld('jee2_diary_'+k+'_mistake','')||'';
+    const improve=ld('jee2_diary_'+k+'_improve','')||'';
+    const commits=ld('jee2_diary_'+k+'_commitments',[])||[];
+    const sw=ld('jee2_diary_'+k+'_study-work',[])||[];
+    const hasTest=ld('jee2_diary_'+k+'_has-test',false);
+    const score=ld('jee2_diary_'+k+'_test-score','')||'';
+    const tname=ld('jee2_diary_'+k+'_test-name','')||'';
+    const d=new Date(k+'T00:00:00');
+    const dateStr=d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear();
+    return `<div class="hist-item">
+      <div class="hist-top">
+        <div class="hist-date">${dateStr}</div>
+        ${mood?`<div class="hist-mood">${mood}</div>`:''}
+      </div>
+      ${sw.length>0?`<div class="hist-tags">${sw.map(s=>`<span class="hist-tag done">${s}</span>`).join('')}</div>`:''}
+      ${hasTest&&tname?`<div class="hist-test">${tname}${score?' · '+score:''}</div>`:''}
+      ${mistake?`<div class="hist-body" style="margin-top:6px"><span style="color:var(--text3);font-size:11px;font-family:var(--mono)">MISTAKE: </span>${mistake.slice(0,100)}${mistake.length>100?'...':''}</div>`:''}
+      ${improve?`<div class="hist-body"><span style="color:var(--text3);font-size:11px;font-family:var(--mono)">IMPROVED: </span>${improve.slice(0,100)}${improve.length>100?'...':''}</div>`:''}
+      ${commits.length>0?`<div class="hist-tags" style="margin-top:8px">${commits.map(c=>`<span class="hist-tag ${c.done?'done':'undone'}">${c.text.slice(0,25)}${c.text.length>25?'...':''}</span>`).join('')}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function renderDiary(){
+  document.getElementById('diary-date').textContent=formatDate(diaryDate);
+  renderClassRows();
+  renderStudyWork();
+  renderMoodRow();
+  renderTestFields();
+  document.getElementById('diary-mistake').value=getD('mistake','')||'';
+  document.getElementById('diary-improve').value=getD('improve','')||'';
+  document.getElementById('diary-notes').value=getD('notes','')||'';
+  renderCommitments();
+  renderHistory();
+}
+
+SUBJECTS.forEach(sub=>{ renderStats(sub); renderChapters(sub); });
+updateSidebar();
+renderDiary();
+</script>
+</body>
+</html>

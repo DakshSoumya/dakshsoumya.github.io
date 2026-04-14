@@ -1,0 +1,139 @@
+JEE Tracker App — What It Is
+
+A complete self-tracking system for JEE prep (Class 11 + 12), combining:
+
+📊 Syllabus tracking
+📅 Daily study logging
+📈 Progress analytics
+🧾 Reflection + mistakes tracking
+
+Basically, it’s trying to turn your chaotic student life into something measurable. Bold move.
+
+📚 1. Subject & Chapter Tracking (Core Feature)
+
+You’ve got sections for:
+
+Physics, Chemistry, Maths
+Separate for Class 11 & 12
+
+Each chapter includes:
+
+✔ Subtopics checklist
+Tick what you’ve studied (e.g. Kinematics → Projectile Motion)
+✔ Completion tracking
+Notes done
+DPP/HW done
+Mains PYQs
+Advanced PYQs
+Extra books
+📊 Progress bar
+Shows % completion per chapter
+Status:
+Not started
+In progress
+Done
+🧮 Extra tracking
+Number of revisions
+Mistakes count
+Doubts (text box)
+
+👉 Translation: it forces you to confront how much you haven’t done. Very motivating. Or depressing.
+
+📈 2. Stats & Analytics
+
+Each subject shows:
+
+Chapters completed
+Total revisions
+Total mistakes
+Chapters with doubts
+
+And then:
+
+🟢 Overall progress bar (sidebar)
+Combines everything into one %
+
+👉 That number will either boost your ego or ruin your evening.
+
+📅 3. Daily “Class Tracker” (Diary System)
+
+This is where things get… intense.
+
+🏫 Class tracking
+Subject, topic, teacher
+Attended:
+Live
+Recorded
+📘 Study work checklist
+Theory revised
+DPP solved
+PYQs practiced
+Formula revision
+Extra book
+😶 4. Mood + Reflection
+
+Because apparently academics alone don’t torture you enough:
+
+Mood selection:
+Excellent → Rough
+Reflection boxes:
+“1 mistake I must not repeat”
+“Today I improved at”
+
+👉 This is actually useful, even if it feels like therapy disguised as homework.
+
+📝 5. Tests Tracking
+
+If you had a test:
+
+Name
+Score
+Accuracy
+
+👉 Clean and simple. No hiding from bad scores here.
+
+📌 6. Commitments System
+
+You can:
+
+Add daily goals (like “Finish Kinematics DPP”)
+Mark them done
+Delete them
+
+👉 Basically a to-do list that remembers your failures.
+
+📜 7. Notes + History
+Notes:
+Free writing area for the day
+History:
+Past entries stored
+Shows:
+Mood
+Study work
+Mistakes
+Improvements
+Test scores
+Completed commitments
+
+👉 So your past self can silently judge your present self.
+
+💾 8. Smart Saving System
+Everything auto-saves using browser storage
+Each day is stored separately
+
+👉 No login, no cloud, just your browser holding your academic secrets hostage.
+
+🧩 Overall Verdict
+
+This app is basically:
+
+A mix of Notion + habit tracker + JEE guilt generator
+
+👍 Strengths
+Extremely structured
+Covers both macro (syllabus) and micro (daily work)
+Forces accountability
+👎 Weaknesses
+Can feel overwhelming if you don’t keep up
+Manual input heavy
+You might spend more time tracking than studying (classic student move)
