@@ -91,4 +91,31 @@ TO USE : https://dakshsoumya.github.io
 - Fully responsive design for desktop and mobile devices  
 
  
+## 📄 License
 
+This project is licensed under the MIT License.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files, to deal in the software
+without restriction. This includes the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of the software.
+
+The software is provided "as is", without warranty of any kind, express or
+implied, including but not limited to the warranties of merchantability,
+fitness for a particular purpose, and non-infringement. In no event shall the
+authors or copyright holders be liable for any claim, damages, or other
+liability arising from the use of the software.
+
+
+## 🤝 Contribution
+
+Contributions to this project are welcome and encouraged.
+
+To contribute:
+
+1. Fork the repository  
+2. Create a new branch for your feature or fix  
+   ```bash
+   git checkout -b feature-name```
+
+   
