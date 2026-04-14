@@ -90,14 +90,5 @@ TO USE : https://dakshsoumya.github.io
 - Graph-focused dashboard for clarity and usability  
 - Fully responsive design for desktop and mobile devices  
 
----
-
-## 🛠️ Tech Stack
-
-*(Update this section based on your implementation)*
-
-- Frontend: HTML, CSS, JavaScript / React  
-- Backend: Node.js / Firebase / Supabase  
-- Database: MongoDB / Firestore  
-- Hosting: GitHub Pages / Vercel / Netlify  
+ 
 
