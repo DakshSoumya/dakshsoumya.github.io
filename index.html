@@ -155,6 +155,68 @@ textarea.field-input{resize:vertical;min-height:48px}
 .save-ind{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px;font-family:var(--mono);color:var(--text3);opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
 .save-ind.show{opacity:1}
 
+/* MISTAKE LOGBOOK */
+.ml-form{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px}
+.ml-form-full{grid-column:1/-1}
+.type-tags{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.type-tag{padding:5px 14px;border-radius:99px;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:12px;font-family:var(--mono);color:var(--text2);transition:all .15s}
+.type-tag.sel-conceptual{border-color:var(--blue);color:var(--blue);background:rgba(74,158,255,.1)}
+.type-tag.sel-calculation{border-color:var(--orange);color:var(--orange);background:rgba(255,140,66,.1)}
+.type-tag.sel-silly{border-color:var(--yellow);color:var(--yellow);background:rgba(255,209,102,.1)}
+.ml-list{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.ml-item{padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px}
+.ml-item-top{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.ml-item-ch{font-size:12px;font-weight:600;color:var(--text);font-family:var(--mono)}
+.ml-item-sub{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.ml-tag{font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:99px;font-weight:500}
+.ml-tag-conceptual{background:rgba(74,158,255,.15);color:var(--blue)}
+.ml-tag-calculation{background:rgba(255,140,66,.15);color:var(--orange)}
+.ml-tag-silly{background:rgba(255,209,102,.15);color:var(--yellow)}
+.ml-item-date{margin-left:auto;font-size:11px;color:var(--text3);font-family:var(--mono)}
+.ml-item-desc{font-size:13px;color:var(--text2);line-height:1.5}
+.ml-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.ml-filter-btn{padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:12px;font-family:var(--mono);color:var(--text3);transition:all .15s}
+.ml-filter-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(200,245,66,.07)}
+select.field-input{cursor:pointer}
+
+/* SPACED REVISION */
+.rev-sub-title{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);margin:22px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.rev-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:5px}
+.rev-ch-name{font-size:13px;color:var(--text2);flex:1}
+.rev-date{font-size:11px;font-family:var(--mono);color:var(--text3);min-width:90px}
+.rev-badge{font-size:10px;font-family:var(--mono);padding:2px 9px;border-radius:99px;font-weight:500;white-space:nowrap}
+.rev-overdue{background:rgba(255,82,82,.15);color:var(--red)}
+.rev-today{background:rgba(255,209,102,.15);color:var(--yellow)}
+.rev-soon{background:rgba(74,158,255,.12);color:var(--blue)}
+.rev-ok{background:rgba(76,175,125,.12);color:var(--green)}
+.rev-none{background:var(--surface2);color:var(--text3)}
+.rev-btn{padding:5px 12px;border-radius:6px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:11px;font-family:var(--mono);color:var(--text2);transition:all .15s;white-space:nowrap}
+.rev-btn:hover{border-color:var(--accent);color:var(--accent)}
+.rev-filter{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+
+/* WEEKLY REPORT */
+.report-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.report-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+.report-card-num{font-size:26px;font-weight:700;font-family:var(--mono)}
+.report-card-lbl{font-size:10px;color:var(--text3);margin-top:4px;text-transform:uppercase;letter-spacing:.05em}
+.day-dots{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+.day-dot{width:36px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:var(--mono);font-weight:600;flex-direction:column;gap:2px}
+.day-dot span:first-child{font-size:9px;color:inherit;opacity:.7}
+.day-dot span:last-child{font-size:14px}
+.day-active{background:rgba(200,245,66,.12);color:var(--accent);border:1px solid rgba(200,245,66,.25)}
+.day-inactive{background:var(--surface2);color:var(--text3);border:1px solid var(--border)}
+.day-future{background:transparent;color:var(--text3);border:1px dashed var(--border)}
+.mood-bar{margin-bottom:8px}
+.mood-bar-lbl{display:flex;justify-content:space-between;font-size:11px;font-family:var(--mono);color:var(--text3);margin-bottom:4px}
+.mood-bar-track{height:6px;background:var(--border2);border-radius:3px;overflow:hidden}
+.mood-bar-fill{height:100%;border-radius:3px;transition:width .5s}
+.prod-score{font-size:13px;color:var(--text2);font-family:var(--mono);margin-top:10px}
+
+/* STREAK */
+.streak-row{display:flex;align-items:center;gap:6px;margin-bottom:10px;padding:10px 12px;background:rgba(255,140,66,.07);border:1px solid rgba(255,140,66,.2);border-radius:8px}
+.streak-num{font-size:20px;font-weight:700;color:var(--orange);font-family:var(--mono)}
+.streak-lbl{font-size:11px;color:var(--text3);line-height:1.4}
+
 /* CHAPTER GROUPS */
 .grp-wrap{margin-bottom:18px}
 .grp-header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;cursor:pointer;user-select:none;transition:background .15s}
@@ -190,7 +252,17 @@ textarea.field-input{resize:vertical;min-height:48px}
     <div class="nav-item" onclick="showPage('chem12')"><span class="nav-dot"></span>Chemistry<span class="nav-count" id="nc-chem12">0%</span></div>
     <div class="nav-item" onclick="showPage('math12')"><span class="nav-dot"></span>Maths<span class="nav-count" id="nc-math12">0%</span></div>
   </div>
+  <div class="nav-sec">
+    <div class="nav-lbl">Tools</div>
+    <div class="nav-item" onclick="showPage('mistakes')"><span class="nav-dot"></span>Mistake Logbook</div>
+    <div class="nav-item" onclick="showPage('revision')"><span class="nav-dot"></span>Spaced Revision</div>
+    <div class="nav-item" onclick="showPage('report')"><span class="nav-dot"></span>Weekly Report</div>
+  </div>
   <div class="sidebar-bottom">
+    <div class="streak-row" id="streak-row">
+      <span style="font-size:18px">🔥</span>
+      <div><div class="streak-num" id="streak-num">0</div><div class="streak-lbl">day streak</div></div>
+    </div>
     <div class="overall-pct" id="overall-pct">0%</div>
     <div class="overall-lbl">overall progress</div>
     <div class="overall-bar"><div class="overall-fill" id="overall-fill" style="width:0%"></div></div>
@@ -326,6 +398,72 @@ textarea.field-input{resize:vertical;min-height:48px}
   <div class="page-sub">Resonance Modules · Black Book · Arihant PYQ</div>
   <div class="stats-grid" id="stats-math12"></div>
   <div id="chs-math12"></div>
+</div>
+
+<!-- MISTAKE LOGBOOK -->
+<div class="page" id="page-mistakes">
+  <div class="page-title">Mistake Logbook</div>
+  <div class="page-sub">Chapter-wise mistake tracking · Never repeat the same one</div>
+  <div class="dcard">
+    <div class="dcard-title"><span></span>Log a Mistake</div>
+    <div class="ml-form">
+      <div>
+        <div class="field-lbl">Subject</div>
+        <select class="field-input" id="ml-sub" onchange="mlUpdateChapters()">
+          <option value="">Select subject</option>
+          <option value="phy11">Physics — Class 11</option>
+          <option value="chem11">Chemistry — Class 11</option>
+          <option value="math11">Maths — Class 11</option>
+          <option value="phy12">Physics — Class 12</option>
+          <option value="chem12">Chemistry — Class 12</option>
+          <option value="math12">Maths — Class 12</option>
+        </select>
+      </div>
+      <div>
+        <div class="field-lbl">Chapter</div>
+        <select class="field-input" id="ml-ch"><option value="">Select chapter</option></select>
+      </div>
+      <div>
+        <div class="field-lbl">Mistake Type</div>
+        <div class="type-tags">
+          <button class="type-tag" id="mlt-Conceptual" onclick="mlSelectType('Conceptual')">Conceptual</button>
+          <button class="type-tag" id="mlt-Calculation" onclick="mlSelectType('Calculation')">Calculation</button>
+          <button class="type-tag" id="mlt-Silly" onclick="mlSelectType('Silly')">Silly</button>
+        </div>
+        <input type="hidden" id="ml-type" value="">
+      </div>
+      <div class="ml-form-full">
+        <div class="field-lbl">Description</div>
+        <textarea class="field-input" id="ml-desc" rows="2" placeholder="Describe what went wrong so future-you knows exactly what to fix..."></textarea>
+      </div>
+    </div>
+    <button class="add-btn" onclick="addMistake()">+ Log Mistake</button>
+  </div>
+  <div class="ml-filter" id="ml-filter"></div>
+  <div id="ml-list"></div>
+</div>
+
+<!-- SPACED REVISION -->
+<div class="page" id="page-revision">
+  <div class="page-title">Spaced Revision Tracker</div>
+  <div class="page-sub">Intervals: 1 · 3 · 7 · 15 days · Click "Revised today" to reset the clock</div>
+  <div class="rev-filter" id="rev-filter"></div>
+  <div id="rev-content"></div>
+</div>
+
+<!-- WEEKLY REPORT -->
+<div class="page" id="page-report">
+  <div class="page-title">Weekly Report</div>
+  <div class="page-sub" id="report-week-label"></div>
+  <div class="report-cards" id="report-cards"></div>
+  <div class="dcard">
+    <div class="dcard-title"><span></span>Day-by-Day Activity</div>
+    <div class="day-dots" id="day-dots" style="gap:8px;margin-top:8px"></div>
+  </div>
+  <div class="dcard" style="margin-top:14px">
+    <div class="dcard-title"><span></span>Mood Breakdown</div>
+    <div id="mood-breakdown"></div>
+  </div>
 </div>
 
 </main>
@@ -471,7 +609,7 @@ function dkey(field){ return 'diary_'+dateKey(diaryDate)+'_'+field; }
 function getD(f,def){ return ld(dkey(f),def); }
 function setD(f,v){ sv(dkey(f),v); }
 
-function saveDiaryField(f,v){ setD(f,v); }
+function saveDiaryField(f,v){ setD(f,v); updateStreak(); }
 
 function getF(sub,ch,field,def){ return ld(`${sub}_${ch}_${field}`,def); }
 function setF(sub,ch,field,val){ sv(`${sub}_${ch}_${field}`,val); }
@@ -630,6 +768,9 @@ function showPage(id){
     if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active');
   });
   if(id==='diary') renderDiary();
+  if(id==='mistakes') renderMistakes();
+  if(id==='revision') renderRevision();
+  if(id==='report') renderWeeklyReport();
 }
 
 function formatDate(d){
@@ -797,8 +938,211 @@ function renderDiary(){
   renderHistory();
 }
 
+/* ===== STREAK ===== */
+function calcStreak(){
+  const today=new Date(); today.setHours(0,0,0,0);
+  let streak=0, d=new Date(today);
+  while(true){
+    const k=dateKey(d);
+    const mood=ld('jee2_diary_'+k+'_mood',null);
+    const sw=ld('jee2_diary_'+k+'_study-work',[])||[];
+    const commits=ld('jee2_diary_'+k+'_commitments',[])||[];
+    const active=mood||(sw.length>0)||(commits.some(c=>c.done));
+    if(!active) break;
+    streak++;
+    d=new Date(d.getTime()-86400000);
+  }
+  return streak;
+}
+function updateStreak(){
+  const s=calcStreak();
+  document.getElementById('streak-num').textContent=s;
+  document.getElementById('streak-row').style.display=s>0?'flex':'none';
+}
+
+/* ===== MISTAKE LOGBOOK ===== */
+const SUB_LABELS={phy11:'Physics 11',chem11:'Chemistry 11',math11:'Maths 11',phy12:'Physics 12',chem12:'Chemistry 12',math12:'Maths 12'};
+let mlFilter='All';
+let mlTypeSelected='';
+
+function mlUpdateChapters(){
+  const sub=document.getElementById('ml-sub').value;
+  const sel=document.getElementById('ml-ch');
+  sel.innerHTML='<option value="">Select chapter</option>';
+  if(sub&&CHAPTERS[sub]) CHAPTERS[sub].forEach(ch=>{
+    const opt=document.createElement('option');
+    opt.value=ch.name; opt.textContent=ch.name; sel.appendChild(opt);
+  });
+}
+function mlSelectType(type){
+  mlTypeSelected=type;
+  document.getElementById('ml-type').value=type;
+  ['Conceptual','Calculation','Silly'].forEach(t=>{
+    const b=document.getElementById('mlt-'+t);
+    b.className='type-tag'+(t===type?' sel-'+type.toLowerCase():'');
+  });
+}
+function addMistake(){
+  const sub=document.getElementById('ml-sub').value;
+  const ch=document.getElementById('ml-ch').value;
+  const type=document.getElementById('ml-type').value;
+  const desc=document.getElementById('ml-desc').value.trim();
+  if(!sub||!ch||!type||!desc){alert('Fill all fields and select a mistake type.');return;}
+  const mistakes=ld('mistakes',[]);
+  mistakes.unshift({id:Date.now(),sub,chapter:ch,type,desc,date:dateKey(new Date())});
+  sv('mistakes',mistakes);
+  document.getElementById('ml-desc').value='';
+  mlTypeSelected=''; document.getElementById('ml-type').value='';
+  ['Conceptual','Calculation','Silly'].forEach(t=>document.getElementById('mlt-'+t).className='type-tag');
+  renderMistakeList();
+}
+function delMistake(id){
+  sv('mistakes',(ld('mistakes',[])).filter(m=>m.id!==id));
+  renderMistakeList();
+}
+function setMlFilter(f){mlFilter=f;renderMistakeFilter();renderMistakeList();}
+function renderMistakeFilter(){
+  document.getElementById('ml-filter').innerHTML=['All','Conceptual','Calculation','Silly'].map(f=>
+    `<button class="ml-filter-btn${mlFilter===f?' active':''}" onclick="setMlFilter('${f}')">${f}</button>`
+  ).join('');
+}
+function renderMistakeList(){
+  let mistakes=ld('mistakes',[]);
+  if(mlFilter!=='All') mistakes=mistakes.filter(m=>m.type===mlFilter);
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const el=document.getElementById('ml-list');
+  if(mistakes.length===0){
+    el.innerHTML='<div style="color:var(--text3);font-size:13px;font-family:var(--mono);text-align:center;padding:40px 0">No mistakes logged yet — either you\'re a genius or in denial.</div>';
+    return;
+  }
+  el.innerHTML=mistakes.map(m=>{
+    const d=new Date(m.date+'T00:00:00');
+    const ds=d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear();
+    return `<div class="ml-item">
+      <div class="ml-item-top">
+        <span class="ml-item-ch">${m.chapter}</span>
+        <span class="ml-item-sub">${SUB_LABELS[m.sub]||m.sub}</span>
+        <span class="ml-tag ml-tag-${m.type.toLowerCase()}">${m.type}</span>
+        <span class="ml-item-date">${ds}</span>
+        <button class="del-btn" onclick="delMistake(${m.id})">&#x2715;</button>
+      </div>
+      <div class="ml-item-desc">${m.desc}</div>
+    </div>`;
+  }).join('');
+}
+function renderMistakes(){renderMistakeFilter();renderMistakeList();}
+
+/* ===== SPACED REVISION ===== */
+const REV_INTERVALS=[1,3,7,15];
+let revFilterMode='due';
+
+function revStatus(lastDate){
+  if(!lastDate) return{label:'Not started',cls:'rev-none',priority:3};
+  const last=new Date(lastDate+'T00:00:00');
+  const today=new Date(); today.setHours(0,0,0,0);
+  const diff=Math.round((today-last)/86400000);
+  if(diff===0) return{label:'Revised today',cls:'rev-ok',priority:4};
+  let next=REV_INTERVALS[REV_INTERVALS.length-1];
+  for(let i=0;i<REV_INTERVALS.length;i++){if(diff<REV_INTERVALS[i]){next=REV_INTERVALS[i];break;}}
+  const left=next-diff;
+  if(left<=0){
+    if(diff>next+7) return{label:`Overdue ${diff}d ago`,cls:'rev-overdue',priority:0};
+    return{label:`Due now (${diff}d since last)`,cls:'rev-today',priority:1};
+  }
+  return{label:`Due in ${left}d`,cls:'rev-soon',priority:2};
+}
+function markRevised(sub,chName){
+  const k=sub+'_rev_'+chName.replace(/[^a-zA-Z0-9]/g,'_');
+  sv(k,dateKey(new Date()));
+  renderRevision();
+}
+function setRevFilter(f){revFilterMode=f;renderRevision();}
+function renderRevision(){
+  document.getElementById('rev-filter').innerHTML=['all','due','overdue'].map(f=>
+    `<button class="ml-filter-btn${revFilterMode===f?' active':''}" onclick="setRevFilter('${f}')">${f==='all'?'All Chapters':f==='due'?'Due / Overdue':'Overdue Only'}</button>`
+  ).join('');
+  let html='';
+  SUBJECTS.forEach(sub=>{
+    let rows='';
+    CHAPTERS[sub].forEach(ch=>{
+      const k=sub+'_rev_'+ch.name.replace(/[^a-zA-Z0-9]/g,'_');
+      const lastDate=ld(k,null);
+      const st=revStatus(lastDate);
+      if(revFilterMode==='due'&&st.priority>1) return;
+      if(revFilterMode==='overdue'&&st.priority!==0&&st.priority!==1) return;
+      const esc=ch.name.replace(/'/g,"\\'");
+      rows+=`<div class="rev-item">
+        <span class="rev-ch-name">${ch.name}</span>
+        <span class="rev-date">${lastDate?'Last: '+lastDate:'Never'}</span>
+        <span class="rev-badge ${st.cls}">${st.label}</span>
+        <button class="rev-btn" onclick="markRevised('${sub}','${esc}')">Revised today</button>
+      </div>`;
+    });
+    if(rows) html+=`<div class="rev-sub-title">${SUB_LABELS[sub]}</div>${rows}`;
+  });
+  document.getElementById('rev-content').innerHTML=html||'<div style="color:var(--text3);font-size:13px;font-family:var(--mono);text-align:center;padding:40px 0">Nothing to show for this filter.</div>';
+}
+
+/* ===== WEEKLY REPORT ===== */
+function getWeekDates(){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const day=today.getDay();
+  const mon=new Date(today.getTime()-((day===0?6:day-1)*86400000));
+  return Array.from({length:7},(_,i)=>new Date(mon.getTime()+i*86400000));
+}
+function renderWeeklyReport(){
+  const days=getWeekDates();
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const s=days[0],e=days[6];
+  document.getElementById('report-week-label').textContent=
+    s.getDate()+' '+months[s.getMonth()]+' – '+e.getDate()+' '+months[e.getMonth()]+' '+e.getFullYear();
+  const today=new Date(); today.setHours(0,0,0,0);
+  const moodScores={Excellent:5,Good:4,Okay:3,Tired:2,Rough:1};
+  const moodColors={Excellent:'var(--green)',Good:'var(--accent)',Okay:'var(--blue)',Tired:'var(--orange)',Rough:'var(--red)'};
+  let tests=0,moodSum=0,moodDays=0,activeDays=0,swTotal=0;
+  const moodCounts={};
+  days.forEach(d=>{
+    const k=dateKey(d);
+    const mood=ld('jee2_diary_'+k+'_mood',null);
+    const sw=ld('jee2_diary_'+k+'_study-work',[])||[];
+    const hasTest=ld('jee2_diary_'+k+'_has-test',false);
+    if(mood){moodCounts[mood]=(moodCounts[mood]||0)+1;moodSum+=moodScores[mood]||3;moodDays++;}
+    if(hasTest) tests++;
+    if(sw.length>0) swTotal+=sw.length;
+    if(mood||sw.length>0) activeDays++;
+  });
+  const avgMood=moodDays>0?(moodSum/moodDays).toFixed(1):'—';
+  const streak=calcStreak();
+  const prodScore=activeDays>0?Math.min(100,Math.round((swTotal/(activeDays*STUDY_WORK.length))*100)):0;
+  document.getElementById('report-cards').innerHTML=`
+    <div class="report-card"><div class="report-card-num" style="color:var(--accent)">${activeDays}/7</div><div class="report-card-lbl">Active Days</div></div>
+    <div class="report-card"><div class="report-card-num" style="color:var(--blue)">${tests}</div><div class="report-card-lbl">Tests Given</div></div>
+    <div class="report-card"><div class="report-card-num" style="color:var(--orange)">${streak} 🔥</div><div class="report-card-lbl">Day Streak</div></div>
+    <div class="report-card"><div class="report-card-num" style="color:var(--purple)">${avgMood}<span style="font-size:14px;color:var(--text3)">/5</span></div><div class="report-card-lbl">Avg Mood</div></div>
+  `;
+  document.getElementById('day-dots').innerHTML=days.map((d,i)=>{
+    const k=dateKey(d);
+    const mood=ld('jee2_diary_'+k+'_mood',null);
+    const sw=ld('jee2_diary_'+k+'_study-work',[])||[];
+    const active=mood||sw.length>0;
+    const isFuture=d>today;
+    const cls=isFuture?'day-future':active?'day-active':'day-inactive';
+    const icon=isFuture?'·':active?'✓':'—';
+    return `<div class="day-dot ${cls}"><span>${dayNames[i]}</span><span>${icon}</span></div>`;
+  }).join('');
+  const moodHTML=Object.entries(moodCounts).filter(([,v])=>v>0).map(([m,v])=>`
+    <div class="mood-bar">
+      <div class="mood-bar-lbl"><span>${m}</span><span>${v} day${v>1?'s':''}</span></div>
+      <div class="mood-bar-track"><div class="mood-bar-fill" style="width:${(v/7*100).toFixed(0)}%;background:${moodColors[m]||'var(--accent)'}"></div></div>
+    </div>`).join('');
+  document.getElementById('mood-breakdown').innerHTML=moodHTML||'<div style="color:var(--text3);font-size:13px;font-family:var(--mono)">No mood data this week yet. Log your days in Class Tracker.</div>';
+  if(activeDays>0) document.getElementById('mood-breakdown').innerHTML+=`<div class="prod-score">Productivity score: <strong style="color:var(--accent)">${prodScore}%</strong> based on study tasks completed per active day.</div>`;
+}
+
 SUBJECTS.forEach(sub=>{ renderStats(sub); renderChapters(sub); });
 updateSidebar();
+updateStreak();
 renderDiary();
 </script>
 </body>
