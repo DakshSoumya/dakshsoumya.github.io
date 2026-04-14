@@ -213,6 +213,13 @@ select.field-input{cursor:pointer}
 .mood-bar-track{height:6px;background:var(--border2);border-radius:3px;overflow:hidden}
 .mood-bar-fill{height:100%;border-radius:3px;transition:width .5s}
 .prod-score{font-size:13px;color:var(--text2);font-family:var(--mono);margin-top:10px}
+.rank-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.rank-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px}
+.rank-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.rank-title{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text2);font-family:var(--mono)}
+.rank-score{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.rank-value{font-size:24px;font-weight:700;font-family:var(--mono);margin-bottom:3px}
+.rank-note{font-size:11px;color:var(--text3);line-height:1.4}
 
 /* STREAK */
 .streak-row{display:flex;align-items:center;gap:6px;margin-bottom:10px;padding:10px 12px;background:rgba(255,140,66,.07);border:1px solid rgba(255,140,66,.2);border-radius:8px}
@@ -575,6 +582,10 @@ select.field-input{cursor:pointer}
   <div class="page-title">Weekly Report</div>
   <div class="page-sub" id="report-week-label"></div>
   <div class="report-cards" id="report-cards"></div>
+  <div class="dcard" style="margin-bottom:14px">
+    <div class="dcard-title"><span></span>Rank Predictor (Mock Marks Based)</div>
+    <div class="rank-grid" id="rank-predictor"></div>
+  </div>
   <div class="dcard">
     <div class="dcard-title"><span></span>Day-by-Day Activity</div>
     <div class="day-dots" id="day-dots" style="gap:8px;margin-top:8px"></div>
@@ -1612,7 +1623,58 @@ function getWeekDates(){
   const mon=new Date(today.getTime()-((day===0?6:day-1)*86400000));
   return Array.from({length:7},(_,i)=>new Date(mon.getTime()+i*86400000));
 }
+function estimateJeeRank(type,scorePct){
+  const mainsBands=[
+    {min:96,rank:'Top 12,000'},
+    {min:92,rank:'Top 25,000'},
+    {min:88,rank:'Top 45,000'},
+    {min:82,rank:'Top 75,000'},
+    {min:75,rank:'Top 1.2 lakh'},
+    {min:68,rank:'Top 1.8 lakh'},
+    {min:0,rank:'Above 1.8 lakh'}
+  ];
+  const advBands=[
+    {min:70,rank:'Top 2,000'},
+    {min:60,rank:'Top 5,000'},
+    {min:50,rank:'Top 9,000'},
+    {min:42,rank:'Top 14,000'},
+    {min:35,rank:'Top 20,000'},
+    {min:0,rank:'Above 20,000'}
+  ];
+  const bands=type==='mains'?mainsBands:advBands;
+  return bands.find(b=>scorePct>=b.min)?.rank||'—';
+}
+function buildRankPredictor(){
+  const root=document.getElementById('rank-predictor');
+  const tests=ld('mock_tests',[]);
+  const types=['mains','advanced'];
+  const labels={mains:'JEE Mains',advanced:'JEE Advanced'};
+  const colors={mains:'var(--blue)',advanced:'var(--orange)'};
+  const html=types.map(type=>{
+    const typeTests=tests.filter(t=>t.type===type&&Number(t.score)>=0&&Number(t.maxScore)>0);
+    if(typeTests.length===0){
+      return `<div class="rank-card">
+        <div class="rank-head"><div class="rank-title">${labels[type]}</div></div>
+        <div class="rank-note">Add at least 1 ${labels[type]} mock with score + max score to unlock prediction.</div>
+      </div>`;
+    }
+    const sorted=typeTests.sort((a,b)=>new Date(a.date||0)-new Date(b.date||0));
+    const recent=sorted.slice(-3);
+    const avgPct=recent.reduce((s,t)=>s+((Number(t.score)/Number(t.maxScore))*100),0)/recent.length;
+    const rankBand=estimateJeeRank(type,avgPct);
+    return `<div class="rank-card">
+      <div class="rank-head">
+        <div class="rank-title">${labels[type]}</div>
+        <div class="rank-score">Avg of last ${recent.length}: ${avgPct.toFixed(1)}%</div>
+      </div>
+      <div class="rank-value" style="color:${colors[type]}">${rankBand}</div>
+      <div class="rank-note">Estimate only — based on your overall mock marks trend, not official percentile conversion.</div>
+    </div>`;
+  }).join('');
+  root.innerHTML=html;
+}
 function renderWeeklyReport(){
+  buildRankPredictor();
   const days=getWeekDates();
   const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
