@@ -856,7 +856,6 @@ const API_ERROR_MESSAGES={
 };
 
 function normUser(u){ return (u||'').trim().toLowerCase(); }
-function storagePrefix(){ return `${APP_PREFIX}_${currentUser||'anon'}_`; }
 
 function buildApiErrorMessage(res,payload,isJson){
   let message=(payload&&payload.error)||'';
