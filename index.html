@@ -849,49 +849,17 @@ let saveTimer;
 let cloudSaveTimer;
 let isSavingToCloud=false;
 
-const API_ERROR_MESSAGES={
-  offline:'Cannot reach server. Please check your internet/server and try again.',
-  missingApi:'Backend API not found. Run the Flask server instead of opening index.html directly.',
-  nonJson:'Server returned non-JSON response. Backend may be misconfigured.'
-};
-
 function normUser(u){ return (u||'').trim().toLowerCase(); }
 
-function buildApiErrorMessage(res,payload,isJson){
-  let message=(payload&&payload.error)||'';
-  if(message) return message;
-  if(res.status===404||res.status===405) return API_ERROR_MESSAGES.missingApi;
-  if(!isJson) return API_ERROR_MESSAGES.nonJson;
-  return `Request failed (${res.status})`;
-}
-
 async function api(path, opts={}){
-  const headers={ ...(opts.headers||{}) };
-  if(opts.body!==undefined&&!headers['Content-Type']) headers['Content-Type']='application/json';
+  const headers={ 'Content-Type':'application/json', ...(opts.headers||{}) };
   if(authToken) headers['Authorization']=`Bearer ${authToken}`;
-
-  let res;
-  try{
-    res=await fetch(path,{...opts,headers});
-  }catch(e){
-    throw new Error(API_ERROR_MESSAGES.offline);
-  }
-
-  const contentType=(res.headers.get('content-type')||'').toLowerCase();
-  const isJson=contentType.includes('application/json');
-  const payload=isJson
-    ? await res.json().catch(()=>null)
-    : await res.text().then(text=>{
-        const cleaned=(text||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
-        return {ok:false,error:cleaned?cleaned.slice(0,180):''};
-      }).catch(()=>({ok:false,error:''}));
-
-  if(!res.ok||!payload||payload.ok===false){
-    throw new Error(buildApiErrorMessage(res,payload,isJson));
-  }
-
-  return payload;
+  const res=await fetch(path,{...opts,headers});
+  const json=await res.json().catch(()=>({ok:false,error:'Invalid server response'}));
+  if(!res.ok||json.ok===false) throw new Error(json.error||`Request failed (${res.status})`);
+  return json;
 }
+
 
 async function loadCloudData(){
   const response=await api('/api/data');
