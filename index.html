@@ -850,6 +850,7 @@ let cloudSaveTimer;
 let isSavingToCloud=false;
 
 function normUser(u){ return (u||'').trim().toLowerCase(); }
+function storagePrefix(){ return `${APP_PREFIX}_${currentUser||'anon'}_`; }
 
 async function loadCloudData(){
   const response=await api('/api/data');
