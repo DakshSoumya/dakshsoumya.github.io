@@ -851,16 +851,6 @@ let isSavingToCloud=false;
 
 function normUser(u){ return (u||'').trim().toLowerCase(); }
 
-async function api(path, opts={}){
-  const headers={ 'Content-Type':'application/json', ...(opts.headers||{}) };
-  if(authToken) headers['Authorization']=`Bearer ${authToken}`;
-  const res=await fetch(path,{...opts,headers});
-  const json=await res.json().catch(()=>({ok:false,error:'Invalid server response'}));
-  if(!res.ok||json.ok===false) throw new Error(json.error||`Request failed (${res.status})`);
-  return json;
-}
-
-
 async function loadCloudData(){
   const response=await api('/api/data');
   cloudStore=(response&&response.data&&typeof response.data==='object')?response.data:{};
@@ -878,6 +868,15 @@ async function saveCloudData(){
   try{ await api('/api/data',{method:'POST',body:JSON.stringify({data:cloudStore})}); }
   catch(e){ setAuthMsg('Cloud sync warning: '+e.message,true); }
   finally{ isSavingToCloud=false; }
+}
+
+async function api(path, opts={}){
+  const headers={ 'Content-Type':'application/json', ...(opts.headers||{}) };
+  if(authToken) headers['Authorization']=`Bearer ${authToken}`;
+  const res=await fetch(path,{...opts,headers});
+  const json=await res.json().catch(()=>({ok:false,error:'Invalid server response'}));
+  if(!res.ok||json.ok===false) throw new Error(json.error||`Request failed (${res.status})`);
+  return json;
 }
 
 function setAuthMode(mode){
