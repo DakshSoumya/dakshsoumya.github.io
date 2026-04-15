@@ -283,37 +283,19 @@ select.field-input{cursor:pointer}
 .account-user{font-size:13px;font-weight:600;color:var(--text)}
 .logout-btn{padding:4px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-size:11px;font-family:var(--mono)}
 .logout-btn:hover{border-color:var(--accent);color:var(--accent)}
-
-
-.side-toggle{display:none;position:fixed;top:12px;left:12px;z-index:1600;width:40px;height:40px;border-radius:8px;border:1px solid var(--border2);background:var(--surface);color:var(--text);cursor:pointer;font-size:18px;align-items:center;justify-content:center}
-.sidebar-backdrop{display:none}
-@media (max-width: 900px){
-  .layout{display:block}
-  .side-toggle{display:flex}
-  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:1500;width:min(84vw,290px);transform:translateX(-100%);transition:transform .25s ease;box-shadow:0 0 24px rgba(0,0,0,.45)}
-  body.sidebar-open .sidebar{transform:translateX(0)}
-  .sidebar-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1400}
-  body.sidebar-open .sidebar-backdrop{display:block}
-  .main{min-height:100vh}
-  .page{padding:62px 14px 20px}
-  .stats-grid,.report-cards{grid-template-columns:repeat(2,1fr)}
-  .sw-grid,.ml-form,.test-row{grid-template-columns:1fr}
-  .ch-grid,.rank-grid{grid-template-columns:1fr}
-}
-
 </style>
 </head>
 <body>
 <div class="auth-gate" id="auth-gate">
   <div class="auth-card">
     <div class="auth-title">JEE Tracker</div>
-    <div class="auth-sub">Create an account or login to continue. Your progress is securely stored in the cloud and can be accessed from any device.</div>
+    <div class="auth-sub">Create an account or login to continue. Your progress is stored under your username on this device.</div>
     <div class="auth-tabs">
       <button class="auth-tab active" id="tab-login" onclick="setAuthMode('login')">Login</button>
       <button class="auth-tab" id="tab-register" onclick="setAuthMode('register')">Register</button>
     </div>
     <div class="auth-fields">
-      <input class="field-input" id="auth-username" type="text" maxlength="24" placeholder="Unique user ID">
+      <input class="field-input" id="auth-username" type="text" maxlength="24" placeholder="Unique username">
       <div class="auth-pass-wrap">
         <input class="field-input" id="auth-password" type="password" maxlength="72" placeholder="Password">
         <button class="pass-toggle" id="pass-toggle" type="button" onclick="togglePasswordVisibility()" aria-label="Show password" title="View password">
@@ -325,8 +307,6 @@ select.field-input{cursor:pointer}
     <div class="auth-msg" id="auth-msg"></div>
   </div>
 </div>
-<button class="side-toggle" id="side-toggle" type="button" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
-<div class="sidebar-backdrop" onclick="closeSidebar()"></div>
 <div class="layout">
 <aside class="sidebar">
   <div class="logo">
@@ -839,46 +819,15 @@ const MOODS = ['Excellent','Good','Okay','Tired','Rough'];
 
 let diaryDate = new Date(); diaryDate.setHours(0,0,0,0);
 const APP_PREFIX='jee2';
-const SESSION_TOKEN_KEY=`${APP_PREFIX}_session_token`;
-const SESSION_USER_KEY=`${APP_PREFIX}_session_user`;
+const USERS_KEY=`${APP_PREFIX}_users`;
+const SESSION_KEY=`${APP_PREFIX}_session`;
 let currentUser=null;
-let authToken=null;
 let authMode='login';
-let cloudStore={};
-let saveTimer;
-let cloudSaveTimer;
-let isSavingToCloud=false;
 
 function normUser(u){ return (u||'').trim().toLowerCase(); }
+function readUsers(){ try{ return JSON.parse(localStorage.getItem(USERS_KEY)||'{}'); }catch(e){ return {}; } }
+function writeUsers(users){ localStorage.setItem(USERS_KEY,JSON.stringify(users)); }
 function storagePrefix(){ return `${APP_PREFIX}_${currentUser||'anon'}_`; }
-
-async function api(path, opts={}){
-  const headers={ 'Content-Type':'application/json', ...(opts.headers||{}) };
-  if(authToken) headers['Authorization']=`Bearer ${authToken}`;
-  const res=await fetch(path,{...opts,headers});
-  const json=await res.json().catch(()=>({ok:false,error:'Invalid server response'}));
-  if(!res.ok||json.ok===false) throw new Error(json.error||`Request failed (${res.status})`);
-  return json;
-}
-
-async function loadCloudData(){
-  const response=await api('/api/data');
-  cloudStore=(response&&response.data&&typeof response.data==='object')?response.data:{};
-}
-
-function queueCloudSave(){
-  if(!currentUser||!authToken) return;
-  clearTimeout(cloudSaveTimer);
-  cloudSaveTimer=setTimeout(saveCloudData,450);
-}
-
-async function saveCloudData(){
-  if(isSavingToCloud||!currentUser||!authToken) return;
-  isSavingToCloud=true;
-  try{ await api('/api/data',{method:'POST',body:JSON.stringify({data:cloudStore})}); }
-  catch(e){ setAuthMsg('Cloud sync warning: '+e.message,true); }
-  finally{ isSavingToCloud=false; }
-}
 
 function setAuthMode(mode){
   authMode=mode;
@@ -912,36 +861,36 @@ function setAuthMsg(msg,isErr=false){
   el.textContent=msg;
   el.className='auth-msg'+(msg?(isErr?' err':' ok'):'');
 }
-function setSession(user,token){
+function setSession(user){
   currentUser=user;
-  authToken=token;
-  localStorage.setItem(SESSION_USER_KEY,user);
-  localStorage.setItem(SESSION_TOKEN_KEY,token);
+  localStorage.setItem(SESSION_KEY,user);
   document.getElementById('account-user').textContent=user;
 }
-async function submitAuth(){
+function submitAuth(){
   const uname=(document.getElementById('auth-username').value||'').trim();
   const pass=document.getElementById('auth-password').value||'';
   const normalized=normUser(uname);
-  if(!/^[a-z0-9_]{3,24}$/i.test(uname)){ setAuthMsg('User ID must be 3-24 letters, numbers, or _.',true); return; }
+  if(!/^[a-z0-9_]{3,24}$/i.test(uname)){ setAuthMsg('Username must be 3-24 letters, numbers, or _.',true); return; }
   if(pass.length<4){ setAuthMsg('Password must be at least 4 characters.',true); return; }
-  try{
-    const endpoint=authMode==='register'?'/api/register':'/api/login';
-    const response=await api(endpoint,{method:'POST',headers:{},body:JSON.stringify({username:normalized,password:pass})});
-    setSession(response.username,response.token);
-    await startApp();
-    setAuthMsg(authMode==='register'?'Account created. Loading tracker...':'Login successful. Loading tracker...');
-  }catch(e){
-    setAuthMsg(e.message,true);
+  const users=readUsers();
+  if(authMode==='register'){
+    if(users[normalized]){ setAuthMsg('Username already exists. Try logging in.',true); return; }
+    users[normalized]={username:uname,password:pass,createdAt:Date.now()};
+    writeUsers(users);
+    setSession(users[normalized].username);
+    setAuthMsg('Account created. Loading tracker...');
+    startApp();
+    return;
   }
+  const user=users[normalized];
+  if(!user||user.password!==pass){ setAuthMsg('Invalid username or password.',true); return; }
+  setSession(user.username);
+  setAuthMsg('Login successful. Loading tracker...');
+  startApp();
 }
-async function logout(){
-  try{ if(authToken) await api('/api/logout',{method:'POST'}); }catch(e){}
-  localStorage.removeItem(SESSION_USER_KEY);
-  localStorage.removeItem(SESSION_TOKEN_KEY);
+function logout(){
+  localStorage.removeItem(SESSION_KEY);
   currentUser=null;
-  authToken=null;
-  cloudStore={};
   const passInput=document.getElementById('auth-password');
   if(passInput){
     passInput.value='';
@@ -950,27 +899,19 @@ async function logout(){
   updatePasswordToggle(false);
   document.getElementById('auth-gate').style.display='flex';
 }
-async function restoreSession(){
-  const savedUser=localStorage.getItem(SESSION_USER_KEY);
-  const savedToken=localStorage.getItem(SESSION_TOKEN_KEY);
-  if(!savedUser||!savedToken) return false;
-  currentUser=savedUser;
-  authToken=savedToken;
-  document.getElementById('account-user').textContent=savedUser;
-  try{
-    await loadCloudData();
-    return true;
-  }catch(e){
-    localStorage.removeItem(SESSION_USER_KEY);
-    localStorage.removeItem(SESSION_TOKEN_KEY);
-    currentUser=null;
-    authToken=null;
-    return false;
-  }
+function restoreSession(){
+  const saved=localStorage.getItem(SESSION_KEY);
+  if(!saved) return false;
+  const users=readUsers();
+  const user=users[normUser(saved)];
+  if(!user) return false;
+  setSession(user.username);
+  return true;
 }
 
-function ld(k,d){ try{ return Object.prototype.hasOwnProperty.call(cloudStore,k)?cloudStore[k]:d; }catch(e){ return d; } }
-function sv(k,v){ try{ cloudStore[k]=v; }catch(e){} queueCloudSave(); showSaved(); }
+function ld(k,d){ try{ const v=localStorage.getItem(storagePrefix()+k); return v!==null?JSON.parse(v):d; }catch(e){ return d; } }
+function sv(k,v){ try{ localStorage.setItem(storagePrefix()+k,JSON.stringify(v)); }catch(e){} showSaved(); }
+let saveTimer;
 function showSaved(){ const el=document.getElementById('save-ind'); el.classList.add('show'); clearTimeout(saveTimer); saveTimer=setTimeout(()=>el.classList.remove('show'),1500); }
 
 function dateKey(d){ return d.toISOString().slice(0,10); }
@@ -1198,7 +1139,6 @@ function renderChapters(sub){
 }
 
 function showPage(id){
-  if(window.innerWidth<=900) closeSidebar();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
@@ -1214,11 +1154,6 @@ function showPage(id){
   if(id==='mocktests') renderMockTests();
   if(id==='report'){renderWeeklyReport();renderTestGraph();}
 }
-
-
-
-function toggleSidebar(){ document.body.classList.toggle('sidebar-open'); }
-function closeSidebar(){ document.body.classList.remove('sidebar-open'); }
 
 function formatDate(d){
   const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -1357,9 +1292,11 @@ function delCommit(i){
 
 function renderHistory(){
   const allKeys=[];
-  Object.keys(cloudStore||{}).forEach(k=>{
-    if(k.startsWith('diary_')&&k.endsWith('_mood')) allKeys.push(k.replace('diary_','').replace('_mood',''));
-  });
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    const start=`${storagePrefix()}diary_`;
+    if(k&&k.startsWith(start)&&k.endsWith('_mood')) allKeys.push(k.replace(start,'').replace('_mood',''));
+  }
   const cur=dateKey(diaryDate);
   const past=allKeys.filter(k=>k<cur).sort().reverse().slice(0,10);
   const container=document.getElementById('hist-list');
@@ -1820,7 +1757,7 @@ function renderWeeklyReport(){
 }
 
 let appStarted=false;
-async function startApp(){
+function startApp(){
   if(!currentUser) return;
   document.getElementById('auth-gate').style.display='none';
   if(appStarted){
@@ -1829,7 +1766,6 @@ async function startApp(){
     updateStreak();
     return;
   }
-  await loadCloudData();
   SUBJECTS.forEach(sub=>{ renderStats(sub); renderChapters(sub); });
   updateSidebar();
   updateStreak();
@@ -1837,15 +1773,12 @@ async function startApp(){
   appStarted=true;
 }
 
-(async function boot(){
-  const ok=await restoreSession();
-  if(!ok){
-    document.getElementById('auth-gate').style.display='flex';
-    setAuthMode('login');
-  }else{
-    await startApp();
-  }
-})();
+if(!restoreSession()){
+  document.getElementById('auth-gate').style.display='flex';
+  setAuthMode('login');
+}else{
+  startApp();
+}
 </script>
 </body>
 </html>
