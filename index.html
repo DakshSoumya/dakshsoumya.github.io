@@ -849,8 +849,22 @@ let saveTimer;
 let cloudSaveTimer;
 let isSavingToCloud=false;
 
+const API_ERROR_MESSAGES={
+  offline:'Cannot reach server. Please check your internet/server and try again.',
+  missingApi:'Backend API not found. Run the Flask server instead of opening index.html directly.',
+  nonJson:'Server returned non-JSON response. Backend may be misconfigured.'
+};
+
 function normUser(u){ return (u||'').trim().toLowerCase(); }
 function storagePrefix(){ return `${APP_PREFIX}_${currentUser||'anon'}_`; }
+
+function buildApiErrorMessage(res,payload,isJson){
+  let message=(payload&&payload.error)||'';
+  if(message) return message;
+  if(res.status===404||res.status===405) return API_ERROR_MESSAGES.missingApi;
+  if(!isJson) return API_ERROR_MESSAGES.nonJson;
+  return `Request failed (${res.status})`;
+}
 
 async function api(path, opts={}){
   const headers={ ...(opts.headers||{}) };
@@ -861,29 +875,20 @@ async function api(path, opts={}){
   try{
     res=await fetch(path,{...opts,headers});
   }catch(e){
-    throw new Error('Cannot reach server. Please check your internet/server and try again.');
+    throw new Error(API_ERROR_MESSAGES.offline);
   }
 
   const contentType=(res.headers.get('content-type')||'').toLowerCase();
   const isJson=contentType.includes('application/json');
-  let payload=null;
-
-  if(isJson){
-    payload=await res.json().catch(()=>null);
-  }else{
-    const text=await res.text().catch(()=>'');
-    const cleaned=(text||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
-    payload={ok:false,error:cleaned?cleaned.slice(0,180):''};
-  }
+  const payload=isJson
+    ? await res.json().catch(()=>null)
+    : await res.text().then(text=>{
+        const cleaned=(text||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+        return {ok:false,error:cleaned?cleaned.slice(0,180):''};
+      }).catch(()=>({ok:false,error:''}));
 
   if(!res.ok||!payload||payload.ok===false){
-    let message=(payload&&payload.error)||'';
-    if(!message){
-      if(res.status===404||res.status===405) message='Backend API not found. Run the Flask server instead of opening index.html directly.';
-      else if(!isJson) message='Server returned non-JSON response. Backend may be misconfigured.';
-      else message=`Request failed (${res.status})`;
-    }
-    throw new Error(message);
+    throw new Error(buildApiErrorMessage(res,payload,isJson));
   }
 
   return payload;
