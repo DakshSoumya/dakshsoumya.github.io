@@ -11,7 +11,37 @@ app = Flask(__name__, static_folder='.')
 DB_URL = os.environ.get('DATABASE_URL')
 
 def get_conn():
+    if not DB_URL:
+        raise RuntimeError('DATABASE_URL is not configured.')
     return psycopg2.connect(DB_URL)
+
+def init_db():
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id SERIAL PRIMARY KEY,
+                    username TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS user_data (
+                    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+                    data_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS sessions (
+                    token UUID PRIMARY KEY,
+                    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            """)
+            cur.execute('CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (user_id)')
+        conn.commit()
 
 def get_user_by_token(token):
     if not token:
@@ -135,4 +165,5 @@ def save_data():
         return jsonify({'ok': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
+    init_db()
     app.run(host='0.0.0.0', port=5000, debug=False)
